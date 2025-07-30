@@ -29,7 +29,7 @@
             <!-- Personal Details -->
             <div class="col-lg-6">
                 <h5>Personal Details</h5>
-                <table class="table table-sm table-borderless">
+                <table class="table table-sm table-borderless oa-data-table">
                     <tr><th style="width: 30%;">Gender</th><td>{{ applicant.gender or 'N/A' }}</td></tr>
                     <tr><th>Date of Birth</th><td>{{ applicant.dob.strftime('%d-%b-%Y') if applicant.dob else 'N/A' }}</td></tr>
                     <tr><th>Age</th><td>{{ applicant.age if applicant.age is not none else 'N/A' }} years</td></tr>
@@ -37,7 +37,7 @@
                 </table>
 
                 <h5 class="mt-4">Contact Information</h5>
-                <table class="table table-sm table-borderless">
+                <table class="table table-sm table-borderless oa-data-table">
                     <tr><th style="width: 30%;">Phone</th><td>{{ applicant.phone or 'N/A' }}</td></tr>
                     <tr><th>Email</th><td>{{ applicant.email or 'N/A' }}</td></tr>
                 </table>
@@ -55,7 +55,7 @@
                 </address>
 
                 <h5 class="mt-4">Identification</h5>
-                <table class="table table-sm table-borderless">
+                <table class="table table-sm table-borderless oa-data-table">
                     <tr><th style="width: 30%;">ID Type</th><td>{{ applicant.id_card_type or 'N/A' }}</td></tr>
                     <tr><th>ID Number</th><td>{{ applicant.id_card_number or 'N/A' }}</td></tr>
                 </table>

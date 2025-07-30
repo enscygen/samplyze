@@ -183,3 +183,15 @@ def delete_folder(folder_id):
     db.session.commit()
     flash(f'Folder "{folder.name}" and all its contents have been deleted.', 'success')
     return redirect(url_for('fileshare.dashboard'))
+
+@fileshare_bp.route('/file/view/<int:file_id>')
+@login_required
+def view_file(file_id):
+    file = File.query.get_or_404(file_id)
+    folder = file.folder
+    if not has_permission(folder, current_user):
+        abort(403)
+    
+    directory = os.path.join(current_app.config['SHARED_FOLDER'], folder.name)
+    # 'as_attachment=False' tells the browser to try and display the file inline
+    return send_from_directory(directory, file.filename, as_attachment=False, download_name=file.original_filename)

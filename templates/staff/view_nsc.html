@@ -3,11 +3,18 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
     <h1 class="h2">NSC Details</h1>
     <div>
-        <a href="{{ url_for('edit_nsc', nsc_id=nsc.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil-square"></i> Edit</a>
-        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteNSCModal">
+        <button type="button" class="btn btn-sm btn-success me-2"
+            onclick="window.open('{{ url_for('nsc_report', nsc_id=nsc.id) }}', 'Report', 'width=800,height=600')">
+            <i class="bi bi-file-earmark-pdf"></i> Generate Report
+        </button>
+        <a href="{{ url_for('edit_nsc', nsc_id=nsc.id) }}" class="btn btn-sm btn-outline-secondary"><i
+                class="bi bi-pencil-square"></i> Edit</a>
+        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+            data-bs-target="#deleteNSCModal">
             <i class="bi bi-trash"></i> Delete
         </button>
-        <a href="{{ url_for('view_applicant', uid=nsc.applicant.uid) }}" class="btn btn-sm btn-secondary">Back to Applicant</a>
+        <a href="{{ url_for('view_applicant', uid=nsc.applicant.uid) }}" class="btn btn-sm btn-secondary">Back to
+            Applicant</a>
     </div>
 </div>
 
@@ -38,51 +45,52 @@
             {{ nsc.remedy_suggested | nl2br }}
         </div>
         {% if nsc.remarks %}
-            <h5>Remarks</h5>
-            <div class="p-3 bg-light rounded mb-3">
-                {{ nsc.remarks | nl2br }}
-            </div>
+        <h5>Remarks</h5>
+        <div class="p-3 bg-light rounded mb-3">
+            {{ nsc.remarks | nl2br }}
+        </div>
         {% endif %}
 
         {% if nsc.images %}
-            <hr>
-            <h5>Attached Images</h5>
-            <div class="row">
-                {% for image in nsc.images %}
-                <div class="col-md-4 mb-3">
-                    <figure class="figure">
-                        <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank">
-                            <img src="{{ url_for('uploaded_file', filename=image.image_path) }}" class="figure-img img-fluid rounded" alt="{{ image.caption }}">
-                        </a>
-                        <figcaption class="figure-caption">{{ image.caption }}</figcaption>
-                    </figure>
-                </div>
-                {% endfor %}
+        <hr>
+        <h5>Attached Images</h5>
+        <div class="row">
+            {% for image in nsc.images %}
+            <div class="col-md-4 mb-3">
+                <figure class="figure">
+                    <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank">
+                        <img src="{{ url_for('uploaded_file', filename=image.image_path) }}"
+                            class="figure-img img-fluid rounded" alt="{{ image.caption }}">
+                    </a>
+                    <figcaption class="figure-caption">{{ image.caption }}</figcaption>
+                </figure>
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
 </div>
 
 <!-- NSC Delete Confirmation Modal -->
 <div class="modal fade" id="deleteNSCModal" tabindex="-1" aria-labelledby="deleteNSCModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="deleteNSCModalLabel">Confirm Deletion</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Are you sure you want to delete this NSC record? All associated images will also be permanently deleted.
-        <br><br>
-        <strong class="text-danger">This action cannot be undone.</strong>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <form action="{{ url_for('delete_nsc', nsc_id=nsc.id) }}" method="POST" class="d-inline">
-          <input type="submit" class="btn btn-danger" value="Confirm Delete">
-        </form>
-      </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteNSCModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete this NSC record? All associated images will also be permanently deleted.
+                <br><br>
+                <strong class="text-danger">This action cannot be undone.</strong>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_nsc', nsc_id=nsc.id) }}" method="POST" class="d-inline">
+                    <input type="submit" class="btn btn-danger" value="Confirm Delete">
+                </form>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}

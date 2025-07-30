@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='Favicon.png') }}">
     <title>{{ title }} - {{ lab_settings.lab_name if lab_settings else 'Lab System' }}</title>
 
     <!-- Bootstrap CSS -->
@@ -88,7 +89,7 @@
     </main>
 
     <footer class="container text-center mt-5 mb-3 text-muted">
-        <p>&copy; {{ current_year }} {{ lab_settings.lab_name if lab_settings else 'Laboratory Management System' }}.
+        <p>&copy; {{ current_year }} {{ lab_settings.lab_name if lab_settings else 'Enscygen Samplyze' }}.
             All Rights Reserved.</p>
     </footer>
 
