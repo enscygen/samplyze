@@ -183,3 +183,30 @@ class FolderPermission(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     user = db.relationship('User', backref='folder_permissions')
+
+# --- NEW: Models for Mail Feature ---
+class Mail(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(255), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    sent_at = db.Column(db.DateTime, default=get_ist_time)
+    
+    sender = db.relationship('User', backref='sent_mails')
+    recipients = db.relationship('MailRecipient', backref='mail', cascade="all, delete-orphan")
+    attachments = db.relationship('MailAttachment', backref='mail', cascade="all, delete-orphan")
+
+class MailRecipient(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    mail_id = db.Column(db.Integer, db.ForeignKey('mail.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    is_deleted = db.Column(db.Boolean, default=False) # Soft delete for inbox
+
+    recipient = db.relationship('User', backref='received_mails')
+
+class MailAttachment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    mail_id = db.Column(db.Integer, db.ForeignKey('mail.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)

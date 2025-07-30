@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Compose New Mail</h1>
+    <a href="{{ url_for('mail.inbox') }}" class="btn btn-secondary">Back to Inbox</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.recipients.label(class="form-label") }}
+                {{ form.recipients(class="form-select", multiple="multiple", id="recipient-select") }}
+                <small class="text-muted">You can select multiple users by holding Ctrl (or Cmd on Mac) and clicking.</small>
+            </div>
+            <div class="mb-3">
+                {{ form.subject.label(class="form-label") }}
+                {{ form.subject(class="form-control") }}
+            </div>
+            <div class="mb-3">
+                {{ form.body.label(class="form-label") }}
+                {{ form.body(class="form-control") }}
+            </div>
+            
+            <!-- UPDATED: Dynamic attachment section -->
+            <hr>
+            <div class="mb-3">
+                <h5>Attachments</h5>
+                <div id="file-container"></div>
+                <button type="button" id="add-file-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add File</button>
+            </div>
+
+            <div class="text-center mt-4">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addFileBtn = document.getElementById('add-file-btn');
+    const fileContainer = document.getElementById('file-container');
+    let fileCounter = 0;
+
+    addFileBtn.addEventListener('click', function() {
+        const fileRow = document.createElement('div');
+        fileRow.classList.add('row', 'mb-2', 'align-items-center');
+        
+        fileRow.innerHTML = `
+            <div class="col-md-11">
+                <input type="file" name="attachments-${fileCounter}" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-sm btn-danger remove-btn">X</button>
+            </div>
+        `;
+        
+        fileContainer.appendChild(fileRow);
+        fileCounter++;
+
+        fileRow.querySelector('.remove-btn').addEventListener('click', function() {
+            fileRow.remove();
+        });
+    });
+});
+</script>
+{% endblock %}

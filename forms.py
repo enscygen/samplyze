@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField, SelectMultipleField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError
 from flask_wtf.file import FileAllowed
 from models import User
@@ -18,6 +18,13 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Login')
+    
+# NEW: Form for changing password when logged in
+class ChangePasswordForm(FlaskForm):
+    old_password = PasswordField('Current Password', validators=[DataRequired()])
+    new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
+    confirm_new_password = PasswordField('Confirm New Password', validators=[DataRequired(), EqualTo('new_password')])
+    submit = SubmitField('Change Password')
 
 class StaffForm(FlaskForm):
     name = StringField('Staff Name', validators=[DataRequired(), Length(min=2, max=120)])
@@ -118,3 +125,11 @@ class FolderSettingsForm(FlaskForm):
     name = StringField('Folder Name', validators=[DataRequired(), Length(min=3, max=100)])
     description = TextAreaField('Description', validators=[Optional()], render_kw={'rows': 3})
     submit = SubmitField('Save Changes')
+
+# UPDATED: ComposeMailForm - removed static attachments field
+class ComposeMailForm(FlaskForm):
+    recipients = SelectMultipleField('To', coerce=int, validators=[DataRequired()])
+    subject = StringField('Subject', validators=[DataRequired(), Length(max=255)])
+    body = TextAreaField('Message', validators=[DataRequired()], render_kw={'rows': 10})
+    submit = SubmitField('Send Mail')
+

@@ -13,9 +13,11 @@
     --light-color: #f8f9fa;
     --dark-color: #343a40;
     --font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --body-bg: #f8f9fa; /* Lighter background */
+    --body-bg: #f8f9fa;
+    /* Lighter background */
     --card-bg: #ffffff;
-    --card-border-radius: 0.375rem; /* Slightly less rounded */
+    --card-border-radius: 0.375rem;
+    /* Slightly less rounded */
     --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     --card-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.06);
     --input-bg: #ffffff;
@@ -28,19 +30,39 @@ body {
     background-color: var(--body-bg);
     color: var(--dark-color);
     line-height: 1.5;
-    font-size: 0.9rem; /* Reduced base font size */
+    font-size: 0.9rem;
+    /* Reduced base font size */
 }
 
-h1, .h1 { font-size: 1.75rem; }
-h2, .h2 { font-size: 1.5rem; }
-h3, .h3 { font-size: 1.25rem; }
-h4, .h4 { font-size: 1.1rem; }
-h5, .h5 { font-size: 1rem; }
+h1,
+.h1 {
+    font-size: 1.75rem;
+}
+
+h2,
+.h2 {
+    font-size: 1.5rem;
+}
+
+h3,
+.h3 {
+    font-size: 1.25rem;
+}
+
+h4,
+.h4 {
+    font-size: 1.1rem;
+}
+
+h5,
+.h5 {
+    font-size: 1rem;
+}
 
 /* --- Navbar Styling --- */
 .navbar {
     background-color: #ffffff !important;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     border-bottom: 1px solid #e9ecef;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
@@ -58,7 +80,8 @@ h5, .h5 { font-size: 1rem; }
     font-size: 0.875rem;
 }
 
-.navbar .nav-link:hover, .navbar .nav-link.active {
+.navbar .nav-link:hover,
+.navbar .nav-link.active {
     color: var(--primary-color) !important;
 }
 
@@ -78,16 +101,19 @@ h5, .h5 { font-size: 1rem; }
 .card-header {
     background-color: #fbfbfc;
     border-bottom: 1px solid #e9ecef;
-    padding: 0.75rem 1.25rem; /* Reduced padding */
+    padding: 0.75rem 1.25rem;
+    /* Reduced padding */
     font-weight: 600;
 }
 
 .card-body {
-    padding: 1.25rem; /* Reduced padding */
+    padding: 1.25rem;
+    /* Reduced padding */
 }
 
 /* --- Form & Button Styling --- */
-.form-control, .form-select {
+.form-control,
+.form-select {
     font-size: 0.9rem;
     border-radius: 0.25rem;
     border: 1px solid var(--input-border-color);
@@ -95,19 +121,22 @@ h5, .h5 { font-size: 1rem; }
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.2);
 }
 
-.form-control-sm, .form-select-sm {
+.form-control-sm,
+.form-select-sm {
     font-size: 0.8rem;
 }
 
 .btn {
     border-radius: 0.25rem;
     font-weight: 500;
-    padding: 0.375rem 0.75rem; /* Smaller button padding */
+    padding: 0.375rem 0.75rem;
+    /* Smaller button padding */
     font-size: 0.875rem;
     transition: all 0.2s ease-in-out;
 }
@@ -128,7 +157,8 @@ h5, .h5 { font-size: 1rem; }
 
 /* --- Table Styling --- */
 .table {
-    font-size: 0.875rem; /* Smaller table font */
+    font-size: 0.875rem;
+    /* Smaller table font */
 }
 
 .table thead th {
@@ -139,19 +169,27 @@ h5, .h5 { font-size: 1rem; }
     text-transform: uppercase;
     font-size: 0.75em;
     letter-spacing: 0.5px;
-    padding: 0.6rem; /* Reduced padding */
+    padding: 0.6rem;
+    /* Reduced padding */
 }
 
 .table-hover tbody tr:hover {
     background-color: rgba(0, 123, 255, 0.04);
 }
 
-.table td, .table th {
+.table td,
+.table th {
     vertical-align: middle;
-    padding: 0.6rem; /* Reduced padding */
+    padding: 0.6rem;
+    /* Reduced padding */
 }
 
 /* --- Utility Classes --- */
 .border-bottom {
     border-bottom: 1px solid #e9ecef !important;
+}
+
+table.oa-data-table td,
+table.oa-data-table th {
+    padding: 5px 0px;
 }

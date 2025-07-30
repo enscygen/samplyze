@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">View Sent Mail</h1>
+    <a href="{{ url_for('mail.sent') }}" class="btn btn-secondary">Back to Sent</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">{{ mail.subject }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-3">
+            <div>
+                <strong>From:</strong> You<br>
+                <strong>To:</strong> {{ mail.recipients|map(attribute='recipient')|map(attribute='name')|join(', ') }}
+            </div>
+            <div class="text-end">
+                <small class="text-muted">{{ mail.sent_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+            </div>
+        </div>
+        <hr>
+        <div class="mail-body">
+            {{ mail.body | nl2br }}
+        </div>
+
+        {% if mail.attachments %}
+            <hr>
+            <h6>Attachments</h6>
+            <div class="list-group">
+                {% for attachment in mail.attachments %}
+                    <a href="{{ url_for('mail.download_attachment', attachment_id=attachment.id) }}" class="list-group-item list-group-item-action">
+                        <i class="bi bi-paperclip"></i> {{ attachment.original_filename }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

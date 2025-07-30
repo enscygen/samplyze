@@ -49,8 +49,22 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">OA Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('all_samples') }}">All Samples</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('add_applicant') }}">Add OA</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('fileshare.dashboard') }}">File Sharing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('fileshare.dashboard') }}">File
+                            Sharing</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('network_info') }}">Network Info</a></li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}">
+                            Mail
+                            {% if unread_mail_count > 0 %}
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                style="font-size: 0.6em;">
+                                {{ unread_mail_count }}
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
                     {% endif %}
                     {% endif %}
                 </ul>
@@ -62,6 +76,14 @@
                             <i class="bi bi-person-circle"></i> {{ current_user.name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <!-- UPDATED: Added Change Password link for admin -->
+                            {% if current_user.role == 'admin' %}
+                            <li><a class="dropdown-item" href="{{ url_for('admin_change_password') }}">Change
+                                    Password</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
                         </ul>
                     </li>

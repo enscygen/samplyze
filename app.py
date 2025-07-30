@@ -11,11 +11,12 @@ from jinja2.filters import pass_eval_context
 import socket
 
 # Import forms, models, and utility functions from other files
-from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm
-from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment
+from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm
+from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient
 from utils import generate_uid, generate_sample_uid
 # Import the blueprint
 from fileshare import fileshare_bp
+from mail import mail_bp
 
 # --- App Initialization and Configuration ---
 app = Flask(__name__)
@@ -40,6 +41,7 @@ login_manager.login_view = 'login'
 
 # Register the blueprint
 app.register_blueprint(fileshare_bp)
+app.register_blueprint(mail_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
@@ -248,6 +250,22 @@ def lab_settings():
         return redirect(url_for('lab_settings'))
     return render_template('admin/settings.html', title='Lab Settings', form=form, settings=settings)
 
+# Add this new route inside the "Admin Routes" section of app.py
+
+@app.route('/admin/change-password', methods=['GET', 'POST'])
+@admin_required
+def admin_change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        # Check if the old password is correct
+        if check_password_hash(current_user.password_hash, form.old_password.data):
+            current_user.password_hash = generate_password_hash(form.new_password.data, method='pbkdf2:sha256')
+            db.session.commit()
+            flash('Your password has been updated successfully.', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Incorrect current password.', 'danger')
+    return render_template('admin/change_password.html', title='Change Password', form=form)
 
 # --- Staff/Consultant Routes ---
 @app.route('/dashboard')
@@ -657,6 +675,17 @@ def sample_report(sample_uid):
 def nsc_report(nsc_id):
     nsc = ConsultancyNSC.query.get_or_404(nsc_id)
     return render_template('reports/nsc_report.html', nsc=nsc)
+
+@app.context_processor
+def inject_unread_mail_count():
+    if current_user.is_authenticated:
+        count = MailRecipient.query.filter_by(
+            recipient_id=current_user.id, 
+            is_read=False, 
+            is_deleted=False
+        ).count()
+        return dict(unread_mail_count=count)
+    return dict(unread_mail_count=0)
 
 
 # --- Context Processors ---
