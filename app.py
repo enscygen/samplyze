@@ -24,7 +24,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.absp
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 app.config['SHARED_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'shared_files')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # 16 MB upload limit
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 16 MB upload limit
 
 # Ensure the upload and shared folders exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -651,6 +651,12 @@ def applicant_report(uid):
 def sample_report(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     return render_template('reports/sample_report.html', sample=sample)
+
+@app.route('/nsc/report/<int:nsc_id>')
+@login_required
+def nsc_report(nsc_id):
+    nsc = ConsultancyNSC.query.get_or_404(nsc_id)
+    return render_template('reports/nsc_report.html', nsc=nsc)
 
 
 # --- Context Processors ---
