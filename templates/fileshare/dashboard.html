@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">File Sharing Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Create New Folder</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <h4>Your Folders</h4>
+        <div class="list-group">
+            {% for folder in folders %}
+                <a href="{{ url_for('fileshare.view_folder', folder_id=folder.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1"><i class="bi bi-folder-fill text-warning me-2"></i>{{ folder.name }}</h6>
+                        <small class="text-muted">{{ folder.description or 'No description.' }}</small>
+                    </div>
+                    <span class="badge bg-light text-dark rounded-pill">
+                        {% if folder.owner_id == current_user.id %}
+                            Owner
+                        {% else %}
+                            Shared
+                        {% endif %}
+                    </span>
+                </a>
+            {% else %}
+                <div class="list-group-item text-center text-muted">You have not created or been given access to any folders yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

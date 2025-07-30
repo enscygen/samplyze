@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2"><i class="bi bi-folder-fill text-warning me-2"></i>{{ folder.name }}</h1>
+    <div>
+        <a href="{{ url_for('fileshare.dashboard') }}" class="btn btn-sm btn-secondary">Back to Folders</a>
+        {% if folder.owner_id == current_user.id or current_user.role == 'admin' %}
+        <a href="{{ url_for('fileshare.folder_settings', folder_id=folder.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-gear"></i> Settings</a>
+        {% endif %}
+    </div>
+</div>
+<p class="text-muted">{{ folder.description or 'No description provided for this folder.' }}</p>
+
+<!-- Drag and Drop Upload Area -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header"><h5 class="mb-0">Upload Files</h5></div>
+    <div class="card-body">
+        <div id="drop-zone" style="border: 2px dashed #ccc; border-radius: 5px; padding: 40px; text-align: center; cursor: pointer;">
+            <p>Drag & drop files here, or click to select files</p>
+            <input type="file" id="file-input" multiple style="display: none;">
+        </div>
+        <div id="upload-progress" class="mt-3"></div>
+    </div>
+</div>
+
+<!-- File List -->
+<div class="card shadow-sm">
+    <div class="card-header"><h5 class="mb-0">Files in this Folder</h5></div>
+    <div class="list-group list-group-flush">
+        {% for file in files %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-file-earmark me-2"></i>
+                    <span>{{ file.original_filename }}</span>
+                    <br>
+                    <small class="text-muted">Uploaded by {{ file.uploader.name }} on {{ file.uploaded_at.strftime('%d-%b-%Y') }}</small>
+                </div>
+                <div>
+                    <a href="{{ url_for('fileshare.download_file', file_id=file.id) }}" class="btn btn-sm btn-outline-primary">Download</a>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteFileModal{{ file.id }}">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        {% else %}
+            <div class="list-group-item text-center text-muted">This folder is empty.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Delete File Modals -->
+{% for file in files %}
+<div class="modal fade" id="deleteFileModal{{ file.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the file: <strong>{{ file.original_filename }}</strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('fileshare.delete_file_from_folder', file_id=file.id) }}" method="POST">
+          <input type="submit" class="btn btn-danger" value="Confirm Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadProgress = document.getElementById('upload-progress');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '#f0f0f0';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.backgroundColor = '';
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', () => {
+        const files = fileInput.files;
+        handleFiles(files);
+    });
+
+    function handleFiles(files) {
+        for (const file of files) {
+            uploadFile(file);
+        }
+    }
+
+    function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const progressItem = document.createElement('div');
+        progressItem.classList.add('progress', 'mb-2');
+        progressItem.innerHTML = `
+            <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">${file.name}</div>
+        `;
+        uploadProgress.appendChild(progressItem);
+        const progressBar = progressItem.querySelector('.progress-bar');
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '{{ url_for("fileshare.upload_file", folder_id=folder.id) }}', true);
+
+        xhr.upload.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+                progressBar.setAttribute('aria-valuenow', percentComplete);
+            }
+        };
+
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                progressBar.classList.add('bg-success');
+                setTimeout(() => {
+                    location.reload(); // Reload the page to show the new file
+                }, 1000);
+            } else {
+                progressBar.classList.add('bg-danger');
+                progressBar.textContent = `Error uploading ${file.name}`;
+            }
+        };
+
+        xhr.send(formData);
+    }
+});
+</script>
+{% endblock %}

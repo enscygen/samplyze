@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">OA Dashboard (Applicants)</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('add_applicant') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-plus-circle"></i> Add New Applicant</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-0">All Applicants</h5>
+            </div>
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Live search by Name, UID, Phone, or Location...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th>Location</th>
+                        <th>Registered On</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="applicantTable">
+                    {% for applicant in applicants %}
+                    <tr>
+                        <td><a href="{{ url_for('view_applicant', uid=applicant.uid) }}" class="fw-bold">{{ applicant.uid }}</a></td>
+                        <td>{{ applicant.name }}</td>
+                        <td>{{ applicant.age if applicant.age is not none else 'N/A' }}</td>
+                        <td>{{ applicant.gender }}</td>
+                        <td>{{ applicant.phone }}</td>
+                        <td>{{ applicant.city }}, {{ applicant.state }}</td>
+                        <td>{{ applicant.created_at.strftime('%d-%b-%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('view_applicant', uid=applicant.uid) }}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i> View</a>
+                            <!-- Add Edit/Delete buttons here if needed -->
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">No applicants found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('applicantTable');
+    const rows = tableBody.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function(event) {
+        const filter = event.target.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            let cells = rows[i].getElementsByTagName('td');
+            let found = false;
+            // Search in all cells (td)
+            for (let j = 0; j < cells.length - 1; j++) { // -1 to exclude action button cell
+                if (cells[j]) {
+                    if (cells[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

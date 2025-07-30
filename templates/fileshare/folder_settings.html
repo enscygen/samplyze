@@ -1,0 +1,80 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Settings for: {{ folder.name }}</h1>
+    <a href="{{ url_for('fileshare.view_folder', folder_id=folder.id) }}" class="btn btn-sm btn-secondary">Back to Folder</a>
+</div>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Folder Details & Permissions</h5></div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control") }}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <h5>Permissions</h5>
+                        <p class="text-muted">Select which users can view and upload to this folder.</p>
+                        <div class="list-group">
+                            {% for user in all_users %}
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-1" type="checkbox" name="permissions" value="{{ user.id }}" {% if user.id in current_permissions %}checked{% endif %}>
+                                    {{ user.name }} ({{ user.username }})
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card shadow-sm bg-light-danger">
+            <div class="card-header"><h5 class="mb-0 text-danger">Danger Zone</h5></div>
+            <div class="card-body">
+                <p>Deleting a folder will permanently remove it and all of its files.</p>
+                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteFolderModal">
+                    Delete This Folder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Folder Modal -->
+<div class="modal fade" id="deleteFolderModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Folder Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the folder <strong>{{ folder.name }}</strong>?</p>
+        <p class="text-danger">This will delete all files inside it and cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('fileshare.delete_folder', folder_id=folder.id) }}" method="POST">
+          <input type="submit" class="btn btn-danger" value="Yes, Delete Folder">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

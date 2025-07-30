@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Edit Sample: <span class="text-primary">{{ sample.sample_uid }}</span></h1>
+</div>
+
+<div class="alert alert-secondary">
+    Editing sample for Applicant: <strong>{{ sample.applicant.name }}</strong> (UID: {{ sample.applicant.uid }})
+</div>
+
+<form method="POST" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Sample Identification</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form.sample_name.label(class="form-label") }}{{ form.sample_name(class="form-control") }}</div>
+                <div class="col-md-6 mb-3">{{ form.sample_type.label(class="form-label") }}{{ form.sample_type(class="form-control") }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.collection_date.label(class="form-label") }}
+                    {{ form.collection_date(class="form-control", type="datetime-local") }}
+                </div>
+            </div>
+            <div class="mb-3">{{ form.primary_observations.label(class="form-label") }}{{ form.primary_observations(class="form-control", rows=4) }}</div>
+            
+            <hr>
+            <div class="mb-3">
+                <h5>Manage Images</h5>
+                 {% if sample.images %}
+                    <p class="text-muted">Check the box next to any image to delete it upon saving.</p>
+                    <ul class="list-group mb-3">
+                    {% for image in sample.images %}
+                        <li class="list-group-item d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="delete_images" value="{{ image.id }}" id="delete-{{ image.id }}">
+                                <label class="form-check-label" for="delete-{{ image.id }}">
+                                    Delete
+                                </label>
+                            </div>
+                            <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank" class="ms-3">
+                                <img src="{{ url_for('uploaded_file', filename=image.image_path) }}" height="40" class="rounded">
+                            </a>
+                            <span class="ms-3">{{ image.caption }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">No images are currently attached.</p>
+                {% endif %}
+                
+                <hr>
+                <h6>Add New Images</h6>
+                <div id="image-container"></div>
+                <button type="button" id="add-image-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add New Image</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Lab Management</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.allotted_department.label(class="form-label") }}
+                    {{ form.allotted_department(class="form-select") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.assigned_staff.label(class="form-label") }}
+                    {{ form.assigned_staff(class="form-select") }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">{{ form.recommended_storage.label(class="form-label") }}{{ form.recommended_storage(class="form-control") }}</div>
+                <div class="col-md-6 mb-3">{{ form.storage_location.label(class="form-label") }}{{ form.storage_location(class="form-control") }}</div>
+            </div>
+            <div class="mb-3">{{ form.diagnostics_needed.label(class="form-label") }}{{ form.diagnostics_needed(class="form-control", rows=3) }}</div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5 class="mb-0">Quality, Safety & Disposal</h5></div>
+        <div class="card-body">
+             <div class="row">
+                <div class="col-md-8 mb-3">{{ form.quality_check_data.label(class="form-label") }}{{ form.quality_check_data(class="form-control", rows=2) }}</div>
+                <div class="col-md-4 mb-3">{{ form.dispose_before.label(class="form-label") }}{{ form.dispose_before(class="form-control") }}</div>
+            </div>
+            <div class="mb-3">{{ form.hazard_control.label(class="form-label") }}{{ form.hazard_control(class="form-control", rows=2) }}</div>
+            <div class="mb-3">{{ form.remarks.label(class="form-label") }}{{ form.remarks(class="form-control", rows=3) }}</div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <input type="submit" class="btn btn-primary btn-lg" value="Update Sample">
+        <a href="{{ url_for('view_sample', sample_uid=sample.sample_uid) }}" class="btn btn-secondary btn-lg">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // This script is identical to the one in add_nsc.html
+document.addEventListener('DOMContentLoaded', function() {
+    const addImageBtn = document.getElementById('add-image-btn');
+    const imageContainer = document.getElementById('image-container');
+    let imageCounter = 0;
+
+    addImageBtn.addEventListener('click', function() {
+        const imageRow = document.createElement('div');
+        imageRow.classList.add('row', 'mb-3', 'align-items-center', 'image-entry');
+        
+        imageRow.innerHTML = `
+            <div class="col-md-3">
+                <img src="https://placehold.co/600x400/f8f9fa/ccc?text=Preview" class="img-fluid rounded border preview-img">
+            </div>
+            <div class="col-md-4">
+                <input type="file" name="images-${imageCounter}" class="form-control file-input" accept="image/*">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="captions-${imageCounter}" class="form-control" placeholder="Enter a caption...">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-sm btn-danger remove-btn">X</button>
+            </div>
+        `;
+        
+        imageContainer.appendChild(imageRow);
+        imageCounter++;
+
+        imageRow.querySelector('.file-input').addEventListener('change', function(event) {
+            const preview = imageRow.querySelector('.preview-img');
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        imageRow.querySelector('.remove-btn').addEventListener('click', function() {
+            imageRow.remove();
+        });
+    });
+});
+</script>
+{% endblock %}

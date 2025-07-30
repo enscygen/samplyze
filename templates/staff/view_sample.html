@@ -1,0 +1,237 @@
+{% extends "layout.html" %}
+{% block content %}
+
+{# Helper macro to render file icons #}
+{% macro file_icon(file_type) %}
+    {% if file_type in ['pdf'] %}
+        <i class="bi bi-file-earmark-pdf text-danger"></i>
+    {% elif file_type in ['doc', 'docx'] %}
+        <i class="bi bi-file-earmark-word text-primary"></i>
+    {% elif file_type in ['jpg', 'jpeg', 'png', 'gif'] %}
+        <i class="bi bi-file-earmark-image text-success"></i>
+    {% else %}
+        <i class="bi bi-file-earmark-text text-secondary"></i>
+    {% endif %}
+{% endmacro %}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Sample Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button type="button" class="btn btn-sm btn-success me-2" onclick="window.open('{{ url_for('sample_report', sample_uid=sample.sample_uid) }}', 'Report', 'width=800,height=600')">
+             <i class="bi bi-file-earmark-pdf"></i> Generate Report
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteSampleModal">
+            <i class="bi bi-trash"></i> Delete Sample
+        </button>
+        <a href="{{ url_for('edit_sample', sample_uid=sample.sample_uid) }}" class="btn btn-outline-secondary me-2"><i class="bi bi-pencil-square"></i> Edit Sample</a>
+        <a href="{{ url_for('add_diagnosis', sample_uid=sample.sample_uid) }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add Diagnosis</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Main Sample Info -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Sample: <span class="text-primary">{{ sample.sample_uid }}</span></h5>
+                <span class="badge bg-info">{{ sample.current_status }}</span>
+            </div>
+            <div class="card-body">
+                <h6><strong>Sample Identification</strong></h6>
+                <div class="d-flex justify-content-between py-2">
+                    <strong>Sample Name:</strong>
+                    <span>{{ sample.sample_name or 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2">
+                    <strong>Sample Type:</strong>
+                    <span>{{ sample.sample_type or 'N/A' }}</span>
+                </div>
+                <hr>
+                <h6><strong>Primary Observations</strong></h6>
+                <p class="text-muted">{{ sample.primary_observations or 'No observations were recorded.' }}</p>
+                
+                {% if sample.images %}
+                    <hr>
+                    <h6><strong>Attached Sample Images</strong></h6>
+                    <div class="row">
+                        {% for image in sample.images %}
+                        <div class="col-md-4 mb-3">
+                            <figure class="figure">
+                                <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank">
+                                    <img src="{{ url_for('uploaded_file', filename=image.image_path) }}" class="figure-img img-fluid rounded" alt="{{ image.caption }}">
+                                </a>
+                                <figcaption class="figure-caption text-center">{{ image.caption }}</figcaption>
+                            </figure>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Applicant & Lab Info -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6><strong>Applicant Details</strong></h6></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Name:</strong>
+                    <a href="{{ url_for('view_applicant', uid=sample.applicant.uid) }}">{{ sample.applicant.name }}</a>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>UID:</strong>
+                    <span>{{ sample.applicant.uid }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <strong>Phone:</strong>
+                    <span>{{ sample.applicant.phone }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6><strong>Lab Management</strong></h6></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Department:</strong>
+                    <span>{{ sample.allotted_department.name if sample.allotted_department else 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Assigned Staff:</strong>
+                    <span>{{ sample.assigned_staff.name if sample.assigned_staff else 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Storage:</strong>
+                    <span>{{ sample.recommended_storage or 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <strong>Location:</strong>
+                    <span>{{ sample.storage_location or 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+         <div class="card shadow-sm mb-4">
+            <div class="card-header"><h6><strong>Key Dates</strong></h6></div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Submitted:</strong>
+                    <span>{{ sample.submission_date.strftime('%d-%b-%Y') if sample.submission_date else 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>Collected:</strong>
+                    <span>{{ sample.collection_date.strftime('%d-%b-%Y') if sample.collection_date else 'N/A' }}</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <strong>Dispose Before:</strong>
+                    <span>{{ sample.dispose_before.strftime('%d-%b-%Y') if sample.dispose_before else 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Diagnosis/Observations Section -->
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0">Diagnosis & Observation History</h5>
+    </div>
+    <div class="card-body">
+        {% if sample.diagnoses %}
+            {% for diagnosis in sample.diagnoses|sort(attribute='created_at', reverse=True) %}
+                <div class="accordion" id="accordionDiagnosis{{ diagnosis.id }}">
+                    <div class="accordion-item mb-3 border rounded">
+                        <h2 class="accordion-header" id="heading{{ diagnosis.id }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ diagnosis.id }}" aria-expanded="false" aria-controls="collapse{{ diagnosis.id }}">
+                                <strong>{{ diagnosis.title }}</strong>&nbsp; ({{ diagnosis.name }}) - <small class="ms-2 text-muted">{{ diagnosis.created_at.strftime('%d-%b-%Y %I:%M %p') }}</small>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ diagnosis.id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ diagnosis.id }}" data-bs-parent="#accordionDiagnosis{{ diagnosis.id }}">
+                            <div class="accordion-body">
+                                <div class="d-flex justify-content-end mb-3">
+                                    <a href="{{ url_for('edit_diagnosis', diagnosis_id=diagnosis.id) }}" class="btn btn-sm btn-outline-secondary me-2">Edit</a>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteDiagnosisModal{{ diagnosis.id }}">
+                                        Delete
+                                    </button>
+                                </div>
+
+                                <p><strong>Description:</strong><br>{{ diagnosis.description | nl2br or 'No description provided.' }}</p>
+                                <hr>
+                                <p><strong>Result:</strong><br>{{ diagnosis.result | nl2br }}</p>
+                                
+                                {% if diagnosis.attachments %}
+                                <hr>
+                                <h6>Attachments:</h6>
+                                <ul class="list-group list-group-flush">
+                                    {% for attachment in diagnosis.attachments %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            {{ file_icon(attachment.file_type) }}
+                                            <a href="{{ url_for('uploaded_file', filename=attachment.file_path) }}" target="_blank" class="ms-2">
+                                                {{ attachment.original_filename }}
+                                            </a>
+                                        </span>
+                                        <span class="badge bg-light text-dark">{{ attachment.file_type.upper() }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-muted">No diagnoses have been added for this sample yet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Sample Delete Confirmation Modal -->
+<div class="modal fade" id="deleteSampleModal" tabindex="-1" aria-labelledby="deleteSampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteSampleModalLabel">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete sample <strong>{{ sample.sample_uid }}</strong>? All associated diagnoses and attachments will also be permanently deleted.
+        <br><br>
+        <strong class="text-danger">This action cannot be undone.</strong>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('delete_sample', sample_uid=sample.sample_uid) }}" method="POST" class="d-inline">
+          <input type="submit" class="btn btn-danger" value="Confirm Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Diagnosis Delete Confirmation Modals -->
+{% for diagnosis in sample.diagnoses %}
+<div class="modal fade" id="deleteDiagnosisModal{{ diagnosis.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ diagnosis.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel{{ diagnosis.id }}">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the diagnosis: <strong>{{ diagnosis.title }}</strong>?
+        <br><br>
+        <strong class="text-danger">This action cannot be undone.</strong>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('delete_diagnosis', diagnosis_id=diagnosis.id) }}" method="POST" class="d-inline">
+          <input type="submit" class="btn btn-danger" value="Confirm Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}

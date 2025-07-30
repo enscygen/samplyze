@@ -1,0 +1,40 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Admin Dashboard</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-people-fill"></i> Total Staff</h5>
+                <p class="card-text fs-1">{{ staff_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-person-lines-fill"></i> Total Applicants</h5>
+                <p class="card-text fs-1">{{ applicant_count }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-beaker"></i> Total Samples</h5>
+                <p class="card-text fs-1">{{ sample_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-4">
+    <h3>Quick Actions</h3>
+    <a href="{{ url_for('manage_staff') }}" class="btn btn-lg btn-outline-secondary m-2"><i class="bi bi-person-plus"></i> Manage Staff</a>
+    <a href="{{ url_for('manage_departments') }}" class="btn btn-lg btn-outline-secondary m-2"><i class="bi bi-building"></i> Manage Departments</a>
+    <a href="{{ url_for('lab_settings') }}" class="btn btn-lg btn-outline-secondary m-2"><i class="bi bi-gear"></i> Lab Settings</a>
+</div>
+{% endblock %}

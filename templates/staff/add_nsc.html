@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">New Non-Sample Consultancy (NSC)</h1>
+</div>
+
+<div class="alert alert-info">
+    Adding NSC for Applicant: <strong>{{ applicant.name }}</strong> (UID: {{ applicant.uid }})
+</div>
+
+<form method="POST" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Consultancy Details</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    {{ form.consultancy_datetime.label(class="form-label") }}
+                    <!-- UPDATED: Explicitly set the input type to datetime-local -->
+                    {{ form.consultancy_datetime(class="form-control", type="datetime-local") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.consultancy_type.label(class="form-label") }}
+                    {{ form.consultancy_type(class="form-control") }}
+                </div>
+            </div>
+            <div class="mb-3">{{ form.problem_with.label(class="form-label") }}{{ form.problem_with(class="form-control") }}</div>
+            <div class="mb-3">{{ form.problem_issue.label(class="form-label") }}{{ form.problem_issue(class="form-control") }}</div>
+            <div class="mb-3">{{ form.remedy_suggested.label(class="form-label") }}{{ form.remedy_suggested(class="form-control") }}</div>
+            <div class="mb-3">{{ form.remarks.label(class="form-label") }}{{ form.remarks(class="form-control") }}</div>
+            
+            <hr>
+            <!-- Dynamic Image Attachment Section -->
+            <div class="mb-3">
+                <h5>Attach Images</h5>
+                <div id="image-container">
+                    <!-- Image inputs will be added here by JavaScript -->
+                </div>
+                <button type="button" id="add-image-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add Image</button>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        {{ form.submit(class="btn btn-primary btn-lg") }}
+        <a href="{{ url_for('view_applicant', uid=applicant.uid) }}" class="btn btn-secondary btn-lg">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    {% if form.errors %}
+        console.error("Server-side form validation errors:");
+        console.log({{ form.errors | tojson }});
+    {% endif %}
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addImageBtn = document.getElementById('add-image-btn');
+    const imageContainer = document.getElementById('image-container');
+    let imageCounter = 0;
+
+    addImageBtn.addEventListener('click', function() {
+        const imageRow = document.createElement('div');
+        imageRow.classList.add('row', 'mb-3', 'align-items-center', 'image-entry');
+        
+        imageRow.innerHTML = `
+            <div class="col-md-3">
+                <img src="https://placehold.co/600x400/f8f9fa/ccc?text=Preview" class="img-fluid rounded border preview-img">
+            </div>
+            <div class="col-md-4">
+                <input type="file" name="images-${imageCounter}" class="form-control file-input" accept="image/*">
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="captions-${imageCounter}" class="form-control" placeholder="Enter a caption...">
+            </div>
+            <div class="col-md-1">
+                <button type="button" class="btn btn-sm btn-danger remove-btn">X</button>
+            </div>
+        `;
+        
+        imageContainer.appendChild(imageRow);
+        imageCounter++;
+
+        imageRow.querySelector('.file-input').addEventListener('change', function(event) {
+            const preview = imageRow.querySelector('.preview-img');
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        imageRow.querySelector('.remove-btn').addEventListener('click', function() {
+            imageRow.remove();
+        });
+    });
+});
+</script>
+{% endblock %}
