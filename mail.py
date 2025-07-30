@@ -58,7 +58,6 @@ def compose():
             recipient = MailRecipient(mail_id=new_mail.id, recipient_id=user_id)
             db.session.add(recipient)
 
-        # UPDATED: Handle dynamically added attachments
         i = 0
         while f'attachments-{i}' in request.files:
             attachment_file = request.files[f'attachments-{i}']
@@ -96,12 +95,10 @@ def view_mail(recipient_mail_id):
     mail = recipient_mail.mail
     return render_template('mail/view_mail.html', title=mail.subject, mail=mail, recipient_mail=recipient_mail)
 
-# NEW: Route to view a sent mail
 @mail_bp.route('/view_sent/<int:mail_id>')
 @login_required
 def view_sent_mail(mail_id):
     mail = Mail.query.get_or_404(mail_id)
-    # Ensure the current user is the sender
     if mail.sender_id != current_user.id:
         abort(403)
     return render_template('mail/view_sent_mail.html', title=mail.subject, mail=mail)
@@ -117,6 +114,26 @@ def delete_mail(recipient_mail_id):
     db.session.commit()
     flash('Mail moved to trash.', 'success')
     return redirect(url_for('mail.inbox'))
+
+# NEW: Route to permanently delete a sent mail
+@mail_bp.route('/delete_sent/<int:mail_id>', methods=['POST'])
+@login_required
+def delete_sent_mail(mail_id):
+    mail = Mail.query.get_or_404(mail_id)
+    if mail.sender_id != current_user.id:
+        abort(403)
+    
+    # Delete all associated attachment files from the server
+    for attachment in mail.attachments:
+        delete_mail_file(attachment.filename)
+        
+    # Delete the mail record from the database
+    # The cascade will handle deleting recipients and attachments records
+    db.session.delete(mail)
+    db.session.commit()
+    flash('Mail has been permanently deleted for all recipients.', 'success')
+    return redirect(url_for('mail.sent'))
+
 
 @mail_bp.route('/attachment/<int:attachment_id>')
 @login_required
