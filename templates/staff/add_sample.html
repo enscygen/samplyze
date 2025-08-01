@@ -8,7 +8,7 @@
     Adding sample for Applicant: <strong>{{ applicant.name }}</strong> (UID: {{ applicant.uid }})
 </div>
 
-<form method="POST" enctype="multipart/form-data" novalidate>
+<form method="POST" enctype="multipart/form-data" novalidate class="editing-page">
     {{ form.hidden_tag() }}
 
     <div class="card shadow-sm mb-4">
@@ -41,19 +41,13 @@
         <div class="card-header"><h5 class="mb-0">Lab Management</h5></div>
         <div class="card-body">
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    {{ form.allotted_department.label(class="form-label") }}
-                    {{ form.allotted_department(class="form-select" + (" is-invalid" if form.allotted_department.errors else "")) }}
-                    {% if form.allotted_department.errors %}
-                        <div class="invalid-feedback">{{ form.allotted_department.errors[0] }}</div>
-                    {% endif %}
+               <div class="col-md-6 mb-3">
+                    {{ form.allotted_department_id.label(class="form-label", text="Allot to Department") }}
+                    {{ form.allotted_department_id(class="form-select") }}
                 </div>
                 <div class="col-md-6 mb-3">
-                    {{ form.assigned_staff.label(class="form-label") }}
-                    {{ form.assigned_staff(class="form-select" + (" is-invalid" if form.assigned_staff.errors else "")) }}
-                    {% if form.assigned_staff.errors %}
-                        <div class="invalid-feedback">{{ form.assigned_staff.errors[0] }}</div>
-                    {% endif %}
+                    {{ form.assigned_staff_id.label(class="form-label", text="Assign to Staff/Consultant") }}
+                    {{ form.assigned_staff_id(class="form-select") }}
                 </div>
             </div>
             <div class="row">

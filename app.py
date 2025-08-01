@@ -48,7 +48,9 @@ app.register_blueprint(mail_bp)
 def nl2br_filter(s):
     if s is None:
         return ''
-    return Markup(escape(s).replace('\n', '<br>\n'))
+    # Do NOT escape, just replace \n with <br>
+    return Markup(s.replace('\n', '<br>\n'))
+
 
 # --- User Loader for Flask-Login ---
 @login_manager.user_loader
@@ -442,25 +444,37 @@ def delete_nsc(nsc_id):
     flash('NSC record and its images have been deleted.', 'success')
     return redirect(url_for('view_applicant', uid=applicant_uid))
 
+# Replace the existing add_sample function in app.py with this one
+
 @app.route('/applicant/<uid>/add_sample', methods=['GET', 'POST'])
 @login_required
 def add_sample(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     form = SampleForm()
-    form.allotted_department.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
-    form.assigned_staff.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
+    form.allotted_department_id.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
+    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
+    
+    if request.method == 'POST':
+        form.current_status.data = 'Submitted'
 
     if form.validate_on_submit():
         new_sample = SampleSC(
-            sample_uid=generate_sample_uid(), applicant_id=applicant.id, sample_name=form.sample_name.data,
-            sample_type=form.sample_type.data, collection_date=form.collection_date.data,
-            primary_observations=form.primary_observations.data, recommended_storage=form.recommended_storage.data,
+            sample_uid=generate_sample_uid(), 
+            applicant_id=applicant.id, 
+            sample_name=form.sample_name.data,
+            sample_type=form.sample_type.data, 
+            collection_date=form.collection_date.data,
+            primary_observations=form.primary_observations.data, 
+            recommended_storage=form.recommended_storage.data,
             storage_location=form.storage_location.data, 
-            allotted_department_id=form.allotted_department.data,
-            assigned_staff_id=form.assigned_staff.data, 
+            allotted_department_id=form.allotted_department_id.data,
+            assigned_staff_id=form.assigned_staff_id.data, 
             diagnostics_needed=form.diagnostics_needed.data,
-            quality_check_data=form.quality_check_data.data, hazard_control=form.hazard_control.data,
-            dispose_before=form.dispose_before.data, remarks=form.remarks.data
+            quality_check_data=form.quality_check_data.data, 
+            hazard_control=form.hazard_control.data,
+            dispose_before=form.dispose_before.data, 
+            remarks=form.remarks.data
+            # The current_status is now handled by the database default
         )
         db.session.add(new_sample)
         db.session.flush() 
@@ -579,14 +593,17 @@ def delete_diagnosis(diagnosis_id):
 def edit_sample(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     form = SampleForm(obj=sample)
-    form.allotted_department.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
-    form.assigned_staff.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
+    
+    form.allotted_department_id.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
+    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
 
     if form.validate_on_submit():
+        # This block for saving the data is correct
         sample.sample_name = form.sample_name.data
         sample.sample_type = form.sample_type.data
         sample.collection_date = form.collection_date.data
         sample.primary_observations = form.primary_observations.data
+        sample.current_status = form.current_status.data
         sample.recommended_storage = form.recommended_storage.data
         sample.storage_location = form.storage_location.data
         sample.diagnostics_needed = form.diagnostics_needed.data
@@ -594,9 +611,8 @@ def edit_sample(sample_uid):
         sample.hazard_control = form.hazard_control.data
         sample.dispose_before = form.dispose_before.data
         sample.remarks = form.remarks.data
-        
-        sample.allotted_department_id = form.allotted_department.data
-        sample.assigned_staff_id = form.assigned_staff.data
+        sample.allotted_department_id = form.allotted_department_id.data
+        sample.assigned_staff_id = form.assigned_staff_id.data
         
         images_to_delete = request.form.getlist('delete_images')
         for image_id in images_to_delete:
@@ -624,8 +640,9 @@ def edit_sample(sample_uid):
         return redirect(url_for('view_sample', sample_uid=sample.sample_uid))
     
     elif request.method == 'GET':
-        form.allotted_department.data = str(sample.allotted_department_id) if sample.allotted_department_id else ''
-        form.assigned_staff.data = str(sample.assigned_staff_id) if sample.assigned_staff_id else ''
+        # THIS IS THE CORRECTED PART: We now pass the integer directly.
+        form.allotted_department_id.data = sample.allotted_department_id
+        form.assigned_staff_id.data = sample.assigned_staff_id
 
     return render_template('staff/edit_sample.html', title='Edit Sample', form=form, sample=sample)
 

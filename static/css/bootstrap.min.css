@@ -5492,14 +5492,19 @@ fieldset:disabled .btn {
     --bs-alert-border: var(--bs-border-width) solid var(--bs-alert-border-color);
     --bs-alert-border-radius: var(--bs-border-radius);
     --bs-alert-link-color: inherit;
-    position: relative;
-    padding: var(--bs-alert-padding-y) var(--bs-alert-padding-x);
     margin-bottom: var(--bs-alert-margin-bottom);
     color: var(--bs-alert-color);
     background-color: var(--bs-alert-bg);
     border: var(--bs-alert-border);
-    border-radius: var(--bs-alert-border-radius)
+    border-radius: var(--bs-alert-border-radius);
+    font-size: 0.8rem;
+    padding: 10px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
 }
+
 
 .alert-heading {
     color: inherit
@@ -5510,17 +5515,7 @@ fieldset:disabled .btn {
     color: var(--bs-alert-link-color)
 }
 
-.alert-dismissible {
-    padding-right: 3rem
-}
 
-.alert-dismissible .btn-close {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 2;
-    padding: 1.25rem 1rem
-}
 
 .alert-primary {
     --bs-alert-color: var(--bs-primary-text-emphasis);

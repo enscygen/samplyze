@@ -94,11 +94,19 @@ class SampleForm(FlaskForm):
     collection_date = DateTimeField('Collection Date & Time', format='%Y-%m-%dT%H:%M', validators=[Optional()])
     primary_observations = TextAreaField('Primary Observations', validators=[Optional()])
     
+    current_status = SelectField('Sample Status', choices=[
+        ('Submitted', 'Submitted'),
+        ('In Progress', 'In Progress'),
+        ('Analysis Complete', 'Analysis Complete'),
+        ('Report Ready', 'Report Ready'),
+        ('Disposed', 'Disposed')
+    ], validators=[DataRequired()])
+    
     recommended_storage = StringField('Recommended Storage (e.g., Refrigerate, Dry)')
     storage_location = StringField('Storage Location in Lab')
     
-    allotted_department = SelectField('Allot to Department', coerce=coerce_int_or_none, validators=[Optional()])
-    assigned_staff = SelectField('Assign to Staff/Consultant', coerce=coerce_int_or_none, validators=[Optional()])
+    allotted_department_id = SelectField('Allot to Department', coerce=coerce_int_or_none, validators=[Optional()])
+    assigned_staff_id = SelectField('Assign to Staff/Consultant', coerce=coerce_int_or_none, validators=[Optional()])
     
     diagnostics_needed = TextAreaField('Initial Diagnostics Needed')
     quality_check_data = TextAreaField('Quality Check Data')
@@ -107,7 +115,6 @@ class SampleForm(FlaskForm):
     remarks = TextAreaField('Additional Remarks')
     
     submit = SubmitField('Save Sample and Generate UID')
-
 
 class DiagnosisForm(FlaskForm):
     name = StringField('Diagnosis Name / Test', validators=[Optional()])

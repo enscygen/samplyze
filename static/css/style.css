@@ -25,6 +25,10 @@
 }
 
 /* --- Global Styles --- */
+html {
+    height: 100%;
+}
+
 body {
     font-family: var(--font-family-sans-serif);
     background-color: var(--body-bg);
@@ -32,11 +36,38 @@ body {
     line-height: 1.5;
     font-size: 0.9rem;
     /* Reduced base font size */
+    height: 100%;
+}
+
+i.bi.bi-three-dots-vertical {
+    color: #222;
+}
+
+.attachments-div {
+    padding-top: 15px;
+    border-top: 1px dashed #efefef;
+}
+
+.attachments-div h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.primary-obs-div {
+    padding-top: 10px;
+    border-top: 1px dashed #efefef;
+    border-bottom: 1px dashed #efefef;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 h1,
 .h1 {
     font-size: 1.75rem;
+}
+
+.card-header h6 {
+    margin-bottom: 0px;
 }
 
 h2,
@@ -71,6 +102,10 @@ h5,
 .navbar-brand {
     font-weight: 600;
     color: var(--dark-color) !important;
+}
+
+.mail-transfer-details {
+    flex: 1;
 }
 
 .navbar .nav-link {
@@ -108,6 +143,27 @@ h5,
 
 .card-body {
     padding: 1.25rem;
+    background: #fff;
+    /* Reduced padding */
+}
+
+.editing-page .card-body {
+    background: #f3f3f3;
+}
+
+td.sep-mail-sender-receiver {
+    width: 20px;
+    text-align: center;
+    color: #8b8b8b;
+}
+
+.mail-transfer-details th,
+.mail-transfer-details td {
+    padding: 0px !important;
+}
+
+.card-body.login-card {
+    background: #ffffff !important;
     /* Reduced padding */
 }
 
@@ -192,4 +248,11 @@ h5,
 table.oa-data-table td,
 table.oa-data-table th {
     padding: 5px 0px;
+}
+
+.mail-body {
+    background: #fff;
+    padding: 20px 0px;
+    border-radius: 4px;
+    border-top: 1px dashed #efefef;
 }

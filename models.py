@@ -114,7 +114,7 @@ class SampleSC(db.Model):
     quality_check_data = db.Column(db.Text)
     hazard_control = db.Column(db.Text)
     diagnostics_needed = db.Column(db.Text)
-    current_status = db.Column(db.String(100), default='Submitted')
+    current_status = db.Column(db.String(100), nullable=False, default='Submitted')
     remarks = db.Column(db.Text)
     
     applicant = db.relationship('Applicant', back_populates='samples_sc')

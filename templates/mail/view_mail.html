@@ -11,33 +11,48 @@
     </div>
     <div class="card-body">
         <div class="d-flex justify-content-between mb-3">
-            <div>
-                <strong>From:</strong> {{ mail.sender.name }}<br>
-                <strong>To:</strong> You
+            <div class="mail-transfer-details">
+                <table class="table table-sm table-borderless w-50">
+                    <tr>
+                        <th style="width: 15%;">From</th>
+                        <td class="sep-mail-sender-receiver">:</td>
+                        <td>{{ mail.sender.name }}</td>
+                    </tr>
+                    <tr>
+                        <th style="width: 15%;">To</th>
+                        <td class="sep-mail-sender-receiver">:</td>
+                        <td>You ({{ current_user.name }})</td>
+                    </tr>
+                </table>
             </div>
             <div class="text-end">
                 <small class="text-muted">{{ mail.sent_at.strftime('%d %b %Y, %I:%M %p') }}</small>
-                <form action="{{ url_for('mail.delete_mail', recipient_mail_id=recipient_mail.id) }}" method="POST" class="d-inline">
-                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2" title="Delete"><i class="bi bi-trash"></i></button>
+                <form action="{{ url_for('mail.delete_mail', recipient_mail_id=recipient_mail.id) }}" method="POST"
+                    class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger ms-2" title="Delete"><i
+                            class="bi bi-trash"></i></button>
                 </form>
             </div>
         </div>
-        <hr>
+
         <div class="mail-body">
             {{ mail.body | nl2br }}
         </div>
 
         {% if mail.attachments %}
-            <hr>
+        <div class="attachments-div">
             <h6>Attachments</h6>
             <div class="list-group">
                 {% for attachment in mail.attachments %}
-                    <a href="{{ url_for('mail.download_attachment', attachment_id=attachment.id) }}" class="list-group-item list-group-item-action">
-                        <i class="bi bi-paperclip"></i> {{ attachment.original_filename }}
-                    </a>
+                <a href="{{ url_for('mail.download_attachment', attachment_id=attachment.id) }}"
+                    class="list-group-item list-group-item-action">
+                    <i class="bi bi-paperclip"></i> {{ attachment.original_filename }}
+                </a>
                 {% endfor %}
             </div>
+        </div>
         {% endif %}
+
     </div>
 </div>
 {% endblock %}
