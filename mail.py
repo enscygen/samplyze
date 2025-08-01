@@ -146,3 +146,15 @@ def download_attachment(attachment_id):
         abort(403)
         
     return send_from_directory(current_app.config['UPLOAD_FOLDER'], attachment.filename, as_attachment=True, download_name=attachment.original_filename)
+
+@mail_bp.route('/attachment/view/<int:attachment_id>')
+@login_required
+def view_attachment(attachment_id):
+    attachment = MailAttachment.query.get_or_404(attachment_id)
+    mail = attachment.mail
+    
+    is_recipient = MailRecipient.query.filter_by(mail_id=mail.id, recipient_id=current_user.id).first()
+    if mail.sender_id != current_user.id and not is_recipient:
+        abort(403)
+        
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], attachment.filename, as_attachment=False, download_name=attachment.original_filename)

@@ -44,10 +44,17 @@
       <h6>Attachments</h6>
       <div class="list-group">
         {% for attachment in mail.attachments %}
-        <a href="{{ url_for('mail.download_attachment', attachment_id=attachment.id) }}"
-          class="list-group-item list-group-item-action">
-          <i class="bi bi-paperclip"></i> {{ attachment.original_filename }}
-        </a>
+        <div class="list-group-item d-flex justify-content-between align-items-center">
+          <span>
+            <i class="bi bi-paperclip"></i> {{ attachment.original_filename }}
+          </span>
+          <div class="btn-group">
+            <a href="{{ url_for('mail.view_attachment', attachment_id=attachment.id) }}"
+              class="btn btn-sm btn-outline-info" title="View" target="_blank"><i class="bi bi-eye"></i></a>
+            <a href="{{ url_for('mail.download_attachment', attachment_id=attachment.id) }}"
+              class="btn btn-sm btn-outline-primary" title="Download"><i class="bi bi-download"></i></a>
+          </div>
+        </div>
         {% endfor %}
       </div>
     </div>

@@ -151,6 +151,10 @@ h5,
     background: #f3f3f3;
 }
 
+.row {
+    row-gap: 30px;
+}
+
 td.sep-mail-sender-receiver {
     width: 20px;
     text-align: center;
