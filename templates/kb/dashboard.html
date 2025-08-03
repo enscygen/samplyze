@@ -1,0 +1,131 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Knowledge Base</h1>
+    <a href="{{ url_for('kb.add_entry') }}" class="btn btn-primary"><i class="bi bi-plus-circle"></i> Add New Entry</a>
+</div>
+
+<div class="row">
+    <!-- Diagnosis Section -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Diagnosis Entries</h5>
+                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Diagnosis">Import CSV</button>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for entry in diagnoses %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ entry.name }}</strong><br>
+                        <small class="text-muted">{{ entry.title }}</small>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('kb.edit_entry', entry_id=entry.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ entry.id }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="list-group-item text-center text-muted">No diagnosis entries found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Remedy Section -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Remedy Entries</h5>
+                 <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Remedy">Import CSV</button>
+            </div>
+             <div class="list-group list-group-flush">
+                {% for entry in remedies %}
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>{{ entry.name }}</strong><br>
+                        <small class="text-muted">{{ entry.description|truncate(80) }}</small>
+                    </div>
+                    <div>
+                        <a href="{{ url_for('kb.edit_entry', entry_id=entry.id) }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ entry.id }}"><i class="bi bi-trash"></i></button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="list-group-item text-center text-muted">No remedy entries found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importModalLabel">Import from CSV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="importForm" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
+              <p>Select a CSV file to import. The file should have headers matching the database fields.</p>
+              <ul>
+                  <li>For <strong>Diagnosis</strong>: `name`, `title`, `description`</li>
+                  <li>For <strong>Remedy</strong>: `name`, `description`</li>
+              </ul>
+              <input type="hidden" name="category" id="importCategory">
+              <input type="file" name="file" class="form-control" accept=".csv" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Import</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- Delete Modals -->
+{% for entry in diagnoses + remedies %}
+<div class="modal fade" id="deleteModal{{ entry.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete the entry: <strong>{{ entry.name }}</strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('kb.delete_entry', entry_id=entry.id) }}" method="POST">
+          <input type="submit" class="btn btn-danger" value="Confirm Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const importModal = document.getElementById('importModal');
+    importModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const category = button.getAttribute('data-category');
+        const modalTitle = importModal.querySelector('.modal-title');
+        const categoryInput = importModal.querySelector('#importCategory');
+        const form = importModal.querySelector('#importForm');
+
+        modalTitle.textContent = 'Import ' + category + ' Entries from CSV';
+        categoryInput.value = category;
+        form.action = "{{ url_for('kb.import_csv') }}";
+    });
+});
+</script>
+{% endblock %}

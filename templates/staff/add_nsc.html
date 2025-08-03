@@ -8,7 +8,7 @@
     Adding NSC for Applicant: <strong>{{ applicant.name }}</strong> (UID: {{ applicant.uid }})
 </div>
 
-<form method="POST" enctype="multipart/form-data" novalidate class="editing-page">
+<form method="POST" enctype="multipart/form-data" novalidate>
     {{ form.hidden_tag() }}
     <div class="card shadow-sm">
         <div class="card-header"><h5 class="mb-0">Consultancy Details</h5></div>
@@ -16,7 +16,6 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.consultancy_datetime.label(class="form-label") }}
-                    <!-- UPDATED: Explicitly set the input type to datetime-local -->
                     {{ form.consultancy_datetime(class="form-control", type="datetime-local") }}
                 </div>
                 <div class="col-md-6 mb-3">
@@ -25,17 +24,21 @@
                 </div>
             </div>
             <div class="mb-3">{{ form.problem_with.label(class="form-label") }}{{ form.problem_with(class="form-control") }}</div>
-            <div class="mb-3">{{ form.problem_issue.label(class="form-label") }}{{ form.problem_issue(class="form-control") }}</div>
-            <div class="mb-3">{{ form.remedy_suggested.label(class="form-label") }}{{ form.remedy_suggested(class="form-control") }}</div>
+            <div class="mb-3">{{ form.problem_issue.label(class="form-label") }}{{ form.problem_issue(class="form-control", id="problemIssue") }}</div>
+            <div class="mb-3">
+                {{ form.remedy_suggested.label(class="form-label") }}
+                 <button type="button" class="btn btn-sm btn-outline-info float-end" data-bs-toggle="modal" data-bs-target="#kbModal" data-category="Remedy">
+                    <i class="bi bi-book"></i> Add from Knowledge Base
+                </button>
+                {{ form.remedy_suggested(class="form-control", id="remedySuggested") }}
+            </div>
             <div class="mb-3">{{ form.remarks.label(class="form-label") }}{{ form.remarks(class="form-control") }}</div>
             
             <hr>
             <!-- Dynamic Image Attachment Section -->
             <div class="mb-3">
                 <h5>Attach Images</h5>
-                <div id="image-container">
-                    <!-- Image inputs will be added here by JavaScript -->
-                </div>
+                <div id="image-container"></div>
                 <button type="button" id="add-image-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add Image</button>
             </div>
         </div>
@@ -45,17 +48,27 @@
         <a href="{{ url_for('view_applicant', uid=applicant.uid) }}" class="btn btn-secondary btn-lg">Cancel</a>
     </div>
 </form>
+
+<!-- Knowledge Base Modal -->
+<div class="modal fade" id="kbModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="kbModalLabel">Select from Knowledge Base</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+          <input type="text" id="kbSearch" class="form-control mb-3" placeholder="Search entries...">
+          <div class="list-group" id="kb-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    {% if form.errors %}
-        console.error("Server-side form validation errors:");
-        console.log({{ form.errors | tojson }});
-    {% endif %}
-</script>
-
-<script>
+// This is the script for the dynamic image uploader
 document.addEventListener('DOMContentLoaded', function() {
     const addImageBtn = document.getElementById('add-image-btn');
     const imageContainer = document.getElementById('image-container');
@@ -98,6 +111,58 @@ document.addEventListener('DOMContentLoaded', function() {
         imageRow.querySelector('.remove-btn').addEventListener('click', function() {
             imageRow.remove();
         });
+    });
+
+    // --- NEW: Script for Knowledge Base Modal ---
+    const kbModal = document.getElementById('kbModal');
+    const kbList = document.getElementById('kb-list');
+    const kbSearch = document.getElementById('kbSearch');
+    let kbData = [];
+    let currentCategory = '';
+
+    kbModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        currentCategory = button.getAttribute('data-category');
+        
+        fetch(`{{ url_for('kb.search_kb', category='_CATEGORY_') }}`.replace('_CATEGORY_', currentCategory))
+            .then(response => response.json())
+            .then(data => {
+                kbData = data;
+                renderKbList(data);
+            });
+    });
+
+    function renderKbList(data) {
+        kbList.innerHTML = '';
+        if (data.length === 0) {
+            kbList.innerHTML = '<p class="text-center text-muted">No entries found.</p>';
+            return;
+        }
+        data.forEach(entry => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.classList.add('list-group-item', 'list-group-item-action');
+            item.innerHTML = `
+                <h6 class="mb-1">${entry.name}</h6>
+                <p class="mb-1 small text-muted">${entry.description.substring(0, 100)}...</p>
+            `;
+            item.addEventListener('click', () => {
+                if (currentCategory === 'Remedy') {
+                    document.getElementById('remedySuggested').value = entry.description;
+                }
+                bootstrap.Modal.getInstance(kbModal).hide();
+            });
+            kbList.appendChild(item);
+        });
+    }
+
+    kbSearch.addEventListener('keyup', () => {
+        const searchTerm = kbSearch.value.toLowerCase();
+        const filteredData = kbData.filter(entry => 
+            entry.name.toLowerCase().includes(searchTerm) ||
+            entry.description.toLowerCase().includes(searchTerm)
+        );
+        renderKbList(filteredData);
     });
 });
 </script>

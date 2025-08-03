@@ -4,16 +4,31 @@
     <h1 class="h2">Add Diagnosis for Sample <span class="text-primary">{{ sample.sample_uid }}</span></h1>
 </div>
 
-<div class="card shadow-sm editing-page">
+<div class="card shadow-sm">
     <div class="card-body">
         <form method="POST" action="" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
             <div class="row">
-                <div class="col-md-6 mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
-                <div class="col-md-6 mb-3">{{ form.title.label(class="form-label") }}{{ form.title(class="form-control") }}</div>
+                <div class="col-md-6 mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control", id="diagName") }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    {{ form.title.label(class="form-label") }}
+                    {{ form.title(class="form-control", id="diagTitle") }}
+                </div>
             </div>
-            <div class="mb-3">{{ form.description.label(class="form-label") }}{{ form.description(class="form-control", rows=4) }}</div>
-            <div class="mb-3">{{ form.result.label(class="form-label") }}{{ form.result(class="form-control", rows=5) }}</div>
+            <div class="mb-3">
+                {{ form.description.label(class="form-label") }}
+                <button type="button" class="btn btn-sm btn-outline-info float-end" data-bs-toggle="modal" data-bs-target="#kbModal" data-category="Diagnosis">
+                    <i class="bi bi-book"></i> Add from Knowledge Base
+                </button>
+                {{ form.description(class="form-control", rows=4, id="diagDesc") }}
+            </div>
+            <div class="mb-3">
+                {{ form.result.label(class="form-label") }}
+                {{ form.result(class="form-control", rows=5) }}
+            </div>
             
             <hr>
             <!-- Dynamic File Attachment Section -->
@@ -30,10 +45,29 @@
         </form>
     </div>
 </div>
+
+<!-- Knowledge Base Modal -->
+<div class="modal fade" id="kbModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="kbModalLabel">Select from Knowledge Base</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+          <input type="text" id="kbSearch" class="form-control mb-3" placeholder="Search entries...">
+          <div class="list-group" id="kb-list">
+              <!-- Content will be loaded by JavaScript -->
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+// This is the script for the dynamic file uploader
 document.addEventListener('DOMContentLoaded', function() {
     const addFileBtn = document.getElementById('add-file-btn');
     const fileContainer = document.getElementById('file-container');
@@ -70,10 +104,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
-                // Set caption to filename by default
                 captionInput.value = file.name;
                 
-                // Show image preview only for image files
                 if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -83,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     reader.readAsDataURL(file);
                 } else {
-                    // For non-image files, show the filename
                     previewImg.style.display = 'none';
                     fileNameDisplay.textContent = file.name;
                     fileNameDisplay.style.display = 'block';
@@ -94,6 +125,61 @@ document.addEventListener('DOMContentLoaded', function() {
         fileRow.querySelector('.remove-btn').addEventListener('click', function() {
             fileRow.remove();
         });
+    });
+
+    // --- NEW: Script for Knowledge Base Modal ---
+    const kbModal = document.getElementById('kbModal');
+    const kbList = document.getElementById('kb-list');
+    const kbSearch = document.getElementById('kbSearch');
+    let kbData = [];
+
+    kbModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        const category = button.getAttribute('data-category');
+        
+        fetch(`{{ url_for('kb.search_kb', category='_CATEGORY_') }}`.replace('_CATEGORY_', category))
+            .then(response => response.json())
+            .then(data => {
+                kbData = data;
+                renderKbList(data);
+            });
+    });
+
+    function renderKbList(data) {
+        kbList.innerHTML = '';
+        if (data.length === 0) {
+            kbList.innerHTML = '<p class="text-center text-muted">No entries found.</p>';
+            return;
+        }
+        data.forEach(entry => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.classList.add('list-group-item', 'list-group-item-action');
+            item.innerHTML = `
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1">${entry.name}</h6>
+                    <small>${entry.title || ''}</small>
+                </div>
+                <p class="mb-1 small text-muted">${entry.description.substring(0, 100)}...</p>
+            `;
+            item.addEventListener('click', () => {
+                document.getElementById('diagName').value = entry.name;
+                document.getElementById('diagTitle').value = entry.title || '';
+                document.getElementById('diagDesc').value = entry.description;
+                bootstrap.Modal.getInstance(kbModal).hide();
+            });
+            kbList.appendChild(item);
+        });
+    }
+
+    kbSearch.addEventListener('keyup', () => {
+        const searchTerm = kbSearch.value.toLowerCase();
+        const filteredData = kbData.filter(entry => 
+            entry.name.toLowerCase().includes(searchTerm) ||
+            (entry.title && entry.title.toLowerCase().includes(searchTerm)) ||
+            entry.description.toLowerCase().includes(searchTerm)
+        );
+        renderKbList(filteredData);
     });
 });
 </script>

@@ -4,12 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='Favicon.png') }}">
     <title>{{ title }} - {{ lab_settings.lab_name if lab_settings else 'Lab System' }}</title>
 
-    <!-- Bootstrap CSS -->
+    <!-- Local Bootstrap CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+    <!-- Local Bootstrap Icons -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}">
+
+    <!-- Google Fonts & Custom Stylesheet -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +24,6 @@
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
-            <!-- UPDATED: Navbar brand with logo -->
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
                 {% if lab_settings and lab_settings.logo_path %}
                 <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path) }}" alt="Logo" height="30"
@@ -33,28 +35,52 @@
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"><i class="bi bi-three-dots-vertical"></i></span>
+                <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- UPDATED: Navigation links now have icons and responsive text -->
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     {% if current_user.is_authenticated %}
                     {% if current_user.role == 'admin' %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_staff') }}">Manage Staff</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('manage_departments') }}">Departments</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('lab_settings') }}">Settings</a></li>
-                    {% else %}
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}">OA Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('all_samples') }}">All Samples</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('add_applicant') }}">Add OA</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('fileshare.dashboard') }}">File
-                            Sharing</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ url_for('network_info') }}">Network Info</a></li>
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}">
-                            Mail
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard">
+                            <i class="bi bi-speedometer2"></i><span class="d-lg-none ms-2">Admin Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('manage_staff') }}" title="Manage Staff">
+                            <i class="bi bi-people"></i><span class="d-lg-none ms-2">Manage Staff</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('manage_departments') }}" title="Departments">
+                            <i class="bi bi-building"></i><span class="d-lg-none ms-2">Departments</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('lab_settings') }}" title="Settings">
+                            <i class="bi bi-gear"></i><span class="d-lg-none ms-2">Settings</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}" title="OA Dashboard">
+                            <i class="bi bi-person-lines-fill"></i><span class="d-lg-none ms-2">OA Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('all_samples') }}" title="All Samples">
+                            <i class="bi bi-beaker"></i><span class="d-lg-none ms-2">All Samples</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('fileshare.dashboard') }}" title="File Sharing">
+                            <i class="bi bi-folder-symlink"></i><span class="d-lg-none ms-2">File Sharing</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}" title="Mail">
+                            <i class="bi bi-envelope"></i><span class="d-lg-none ms-2">Mail</span>
                             {% if unread_mail_count > 0 %}
                             <span
                                 class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
@@ -65,18 +91,32 @@
                             {% endif %}
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('kb.dashboard') }}" title="Knowledge Base">
+                            <i class="bi bi-book"></i><span class="d-lg-none ms-2">Knowledge Base</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info">
+                            <i class="bi bi-wifi"></i><span class="d-lg-none ms-2">Network Info</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('add_applicant') }}" title="Add Applicant">
+                            <i class="bi bi-person-plus"></i><span class="d-lg-none ms-2">Add OA</span>
+                        </a>
+                    </li>
                     {% endif %}
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
+                        <a class="nav-link dropdown-toggle user-display-section" href="#" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle"></i> {{ current_user.name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <!-- UPDATED: Added Change Password link for admin -->
                             {% if current_user.role == 'admin' %}
                             <li><a class="dropdown-item" href="{{ url_for('admin_change_password') }}">Change
                                     Password</a></li>
@@ -100,8 +140,8 @@
         {% if messages %}
         {% for category, message in messages %}
         <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-           <div class="alert-msg-container">{{ message }}</div>
-           <div class="alert-close-container"><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         {% endfor %}
         {% endif %}
@@ -111,11 +151,19 @@
     </main>
 
     <footer class="container text-center mt-5 mb-3 text-muted">
-        <p>&copy; {{ current_year }} {{ lab_settings.lab_name if lab_settings else 'Enscygen Samplyze' }}.
+        <p>&copy; {{ current_year }} {{ lab_settings.lab_name if lab_settings else 'Laboratory Management System' }}.
             All Rights Reserved.</p>
     </footer>
 
+    <!-- Local Bootstrap JS -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        // Initialize all tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
     {% block scripts %}{% endblock %}
 </body>
 

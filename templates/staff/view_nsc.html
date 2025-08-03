@@ -35,37 +35,38 @@
         <p><strong>Consultant:</strong> {{ nsc.consultant.name }}</p>
         <p><strong>Consultancy Type:</strong> {{ nsc.consultancy_type }}</p>
         <p><strong>Problem Related To:</strong> {{ nsc.problem_with }}</p>
-        <hr>
-        <h5>Problem / Issue</h5>
-        <div class="p-3 bg-light rounded mb-3">
-            {{ nsc.problem_issue | nl2br }}
-        </div>
-        <h5>Remedy / Advice Suggested</h5>
-        <div class="p-3 bg-light rounded mb-3">
-            {{ nsc.remedy_suggested | nl2br }}
-        </div>
-        {% if nsc.remarks %}
-        <h5>Remarks</h5>
-        <div class="p-3 bg-light rounded mb-3">
-            {{ nsc.remarks | nl2br }}
-        </div>
-        {% endif %}
-
-        {% if nsc.images %}
-        <hr>
-        <h5>Attached Images</h5>
-        <div class="row">
-            {% for image in nsc.images %}
-            <div class="col-md-4 mb-3">
-                <figure class="figure">
-                    <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank">
-                        <img src="{{ url_for('uploaded_file', filename=image.image_path) }}"
-                            class="figure-img img-fluid rounded" alt="{{ image.caption }}">
-                    </a>
-                    <figcaption class="figure-caption">{{ image.caption }}</figcaption>
-                </figure>
+        <div class="overview-nsc-data">
+            <h5>Problem / Issue</h5>
+            <div class="p-3 bg-light rounded mb-3">
+                {{ nsc.problem_issue | nl2br }}
             </div>
-            {% endfor %}
+            <h5>Remedy / Advice Suggested</h5>
+            <div class="p-3 bg-light rounded mb-3">
+                {{ nsc.remedy_suggested | nl2br }}
+            </div>
+            {% if nsc.remarks %}
+            <h5>Remarks</h5>
+            <div class="p-3 bg-light rounded mb-3">
+                {{ nsc.remarks | nl2br }}
+            </div>
+            {% endif %}
+        </div>
+        {% if nsc.images %}
+        <div class="nsc-images">
+            <h5>Attached Images</h5>
+            <div class="row">
+                {% for image in nsc.images %}
+                <div class="col-md-4 mb-3">
+                    <figure class="figure">
+                        <a href="{{ url_for('uploaded_file', filename=image.image_path) }}" target="_blank">
+                            <img src="{{ url_for('uploaded_file', filename=image.image_path) }}"
+                                class="figure-img img-fluid rounded" alt="{{ image.caption }}">
+                        </a>
+                        <figcaption class="figure-caption">{{ image.caption }}</figcaption>
+                    </figure>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
     </div>

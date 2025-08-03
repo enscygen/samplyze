@@ -92,16 +92,16 @@ h5,
 
 /* --- Navbar Styling --- */
 .navbar {
-    background-color: #ffffff !important;
+    background-color: #001329 !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    border-bottom: 1px solid #e9ecef;
     padding-top: 0.5rem;
     padding-bottom: 0.5rem;
+    color: #fff;
 }
 
 .navbar-brand {
     font-weight: 600;
-    color: var(--dark-color) !important;
+    color: #fff !important;
 }
 
 .mail-transfer-details {
@@ -109,7 +109,7 @@ h5,
 }
 
 .navbar .nav-link {
-    color: #555 !important;
+    color: #fff !important;
     font-weight: 500;
     transition: color 0.2s ease-in-out;
     font-size: 0.875rem;
@@ -147,12 +147,38 @@ h5,
     /* Reduced padding */
 }
 
+.sample-overview-counter {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.user-display-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-nav {
+    gap: 10px;
+}
+
 .editing-page .card-body {
     background: #f3f3f3;
 }
 
 .row {
     row-gap: 30px;
+}
+
+a.nav-link i {
+    font-size: 1.1rem;
+}
+
+.initial-overview,
+.overview-nsc-data,
+.nsc-images {
+    border-top: 1px dashed #ccc;
+    padding-top: 15px;
 }
 
 td.sep-mail-sender-receiver {

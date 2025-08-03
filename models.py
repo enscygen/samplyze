@@ -210,3 +210,10 @@ class MailAttachment(db.Model):
     mail_id = db.Column(db.Integer, db.ForeignKey('mail.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
+    
+class KnowledgeBase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50), nullable=False) # 'Diagnosis' or 'Remedy'
+    name = db.Column(db.String(150), nullable=False)    # e.g., "Fungal Test" or "Pest Infestation"
+    title = db.Column(db.String(150), nullable=True)     # Only for Diagnosis
+    description = db.Column(db.Text, nullable=True)    # For Diagnosis Method or Remedy Details

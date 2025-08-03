@@ -9,6 +9,7 @@ import pytz
 from markupsafe import Markup, escape
 from jinja2.filters import pass_eval_context
 import socket
+import sys
 
 # Import forms, models, and utility functions from other files
 from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm
@@ -17,6 +18,18 @@ from utils import generate_uid, generate_sample_uid
 # Import the blueprint
 from fileshare import fileshare_bp
 from mail import mail_bp
+from knowledge_base import kb_bp
+
+# --- PyInstaller Path Correction ---
+# This is a special check to see if the app is running as a bundled executable.
+if getattr(sys, 'frozen', False):
+    # If so, we need to tell Flask where to find the template and static folders.
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    # If running normally (e.g., with 'python run.py'), it behaves as before.
+    app = Flask(__name__)
 
 # --- App Initialization and Configuration ---
 app = Flask(__name__)
@@ -42,6 +55,7 @@ login_manager.login_view = 'login'
 # Register the blueprint
 app.register_blueprint(fileshare_bp)
 app.register_blueprint(mail_bp)
+app.register_blueprint(kb_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')

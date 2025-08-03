@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">{{ title }}</h1>
+    <a href="{{ url_for('kb.dashboard') }}" class="btn btn-secondary">Back to Knowledge Base</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.category.label(class="form-label") }}
+                        {{ form.category(class="form-select", id="categorySelect") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <div class="mb-3" id="titleField">
+                        {{ form.title.label(class="form-label") }}
+                        {{ form.title(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control") }}
+                    </div>
+                    <div class="text-center">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('categorySelect');
+    const titleField = document.getElementById('titleField');
+
+    function toggleTitleField() {
+        if (categorySelect.value === 'Diagnosis') {
+            titleField.style.display = 'block';
+        } else {
+            titleField.style.display = 'none';
+        }
+    }
+
+    // Initial check on page load
+    toggleTitleField();
+
+    // Add event listener for changes
+    categorySelect.addEventListener('change', toggleTitleField);
+});
+</script>
+{% endblock %}

@@ -140,3 +140,9 @@ class ComposeMailForm(FlaskForm):
     body = TextAreaField('Message', validators=[DataRequired()], render_kw={'rows': 10})
     submit = SubmitField('Send Mail')
 
+class KnowledgeBaseForm(FlaskForm):
+    category = SelectField('Category', choices=[('Diagnosis', 'Diagnosis'), ('Remedy', 'Remedy')], validators=[DataRequired()])
+    name = StringField('Name / Test', validators=[DataRequired()])
+    title = StringField('Title (for Diagnosis only)', validators=[Optional()])
+    description = TextAreaField('Description / Method / Remedy Details', validators=[DataRequired()], render_kw={'rows': 5})
+    submit = SubmitField('Save Entry')
