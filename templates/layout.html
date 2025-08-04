@@ -43,53 +43,68 @@
                     {% if current_user.is_authenticated %}
                     {% if current_user.role == 'admin' %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard">
+                        <a class="nav-link" href="{{ url_for('admin_dashboard') }}" title="Admin Dashboard" data-bs-placement="bottom">
                             <i class="bi bi-speedometer2"></i><span class="d-lg-none ms-2">Admin Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('manage_staff') }}" title="Manage Staff">
+                        <a class="nav-link" href="{{ url_for('manage_staff') }}" title="Manage Staff" data-bs-placement="bottom">
                             <i class="bi bi-people"></i><span class="d-lg-none ms-2">Manage Staff</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('manage_departments') }}" title="Departments">
+                        <a class="nav-link" href="{{ url_for('manage_departments') }}" title="Departments" data-bs-placement="bottom">
                             <i class="bi bi-building"></i><span class="d-lg-none ms-2">Departments</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('lab_settings') }}" title="Settings">
+                        <a class="nav-link" href="{{ url_for('lab_settings') }}" title="Settings" data-bs-placement="bottom">
                             <i class="bi bi-gear"></i><span class="d-lg-none ms-2">Settings</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('migrate_database') }}" title="Migrate Database">
+                        <a class="nav-link" href="{{ url_for('migrate_database') }}" title="Migrate Database" data-bs-placement="bottom">
                             <i class="bi bi-database-up"></i><span class="d-lg-none ms-2">Migrate Database</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info">
+                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info" data-bs-placement="bottom">
                             <i class="bi bi-wifi"></i><span class="d-lg-none ms-2">Network Info</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('audit_log') }}" title="Audit Log" data-bs-placement="bottom">
+                            <i class="bi bi-clipboard-data"></i><span class="d-lg-none ms-2">Audit Log</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('equipment.dashboard') }}" title="Equipment Log" data-bs-placement="bottom">
+                            <i class="bi bi-tools"></i><span class="d-lg-none ms-2">Equipment Log</span>
                         </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}" title="OA Dashboard">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}" title="OA Dashboard" data-bs-placement="bottom">
                             <i class="bi bi-person-lines-fill"></i><span class="d-lg-none ms-2">OA Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('all_samples') }}" title="All Samples">
+                        <a class="nav-link" href="{{ url_for('all_samples') }}" title="All Samples" data-bs-placement="bottom">
                             <i class="bi bi-beaker"></i><span class="d-lg-none ms-2">All Samples</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('fileshare.dashboard') }}" title="File Sharing">
+                        <a class="nav-link" href="{{ url_for('fileshare.dashboard') }}" title="File Sharing" data-bs-placement="bottom">
                             <i class="bi bi-folder-symlink"></i><span class="d-lg-none ms-2">File Sharing</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}" title="Mail">
+                        <a class="nav-link" href="{{ url_for('equipment.dashboard') }}" title="Equipment Log" data-bs-placement="bottom">
+                            <i class="bi bi-tools"></i><span class="d-lg-none ms-2">Equipment Log</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}" title="Mail" data-bs-placement="bottom">
                             <i class="bi bi-envelope"></i><span class="d-lg-none ms-2">Mail</span>
                             {% if unread_mail_count > 0 %}
                             <span
@@ -102,17 +117,17 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('kb.dashboard') }}" title="Knowledge Base">
+                        <a class="nav-link" href="{{ url_for('kb.dashboard') }}" title="Knowledge Base" data-bs-placement="bottom">
                             <i class="bi bi-book"></i><span class="d-lg-none ms-2">Knowledge Base</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info">
+                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info" data-bs-placement="bottom">
                             <i class="bi bi-wifi"></i><span class="d-lg-none ms-2">Network Info</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('add_applicant') }}" title="Add Applicant">
+                        <a class="nav-link" href="{{ url_for('add_applicant') }}" title="Add Applicant" data-bs-placement="bottom">
                             <i class="bi bi-person-plus"></i><span class="d-lg-none ms-2">Add OA</span>
                         </a>
                     </li>

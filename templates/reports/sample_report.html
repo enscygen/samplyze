@@ -89,15 +89,17 @@
 
         .image-gallery img {
             width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            padding: 3px;
-            margin-bottom: 5px;
-            max-width: 200px;
+            max-height: 200px;
         }
 
         .page-break {
             page-break-before: always;
+        }
+
+        .sample-img-holder {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
         @media print {
@@ -171,10 +173,15 @@
     {% if sample.images %}
     <div class="section image-gallery">
         <h2>Sample Images</h2>
-        {% for image in sample.images %}
-        <img src="{{ url_for('uploaded_file', filename=image.image_path, _external=True) }}" alt="{{ image.caption }}">
-        <p>{{ image.caption }}</p>
-        {% endfor %}
+        <div class="sample-img-holder">
+            {% for image in sample.images %}
+            <div class="ind-sample-img-container">
+                <img src="{{ url_for('uploaded_file', filename=image.image_path, _external=True) }}"
+                    alt="{{ image.caption }}">
+                <p>{{ image.caption }}</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
     {% endif %}
 

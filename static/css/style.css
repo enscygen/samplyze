@@ -108,6 +108,21 @@ h5,
     flex: 1;
 }
 
+.row.add-diagnosis-from-kb {
+    padding-right: calc(var(--bs-gutter-x) * .5);
+    padding-left: calc(var(--bs-gutter-x) * .5);
+    padding-bottom: 20px;
+}
+
+button.add-diagnosis-from-kb-btn {
+    max-width: 300px;
+}
+
+.add-diag-images-section {
+    padding-top: 15px;
+    border-top: 1px dashed #ddd;
+}
+
 .navbar .nav-link {
     color: #fff !important;
     font-weight: 500;
@@ -143,8 +158,6 @@ h5,
 
 .card-body {
     padding: 1.25rem;
-    background: #fff;
-    /* Reduced padding */
 }
 
 .sample-overview-counter {

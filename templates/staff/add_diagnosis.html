@@ -4,10 +4,16 @@
     <h1 class="h2">Add Diagnosis for Sample <span class="text-primary">{{ sample.sample_uid }}</span></h1>
 </div>
 
-<div class="card shadow-sm">
+<div class="card shadow-sm editing-page">
     <div class="card-body">
         <form method="POST" action="" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
+            <div class="row add-diagnosis-from-kb">
+                <button type="button" class="btn btn-sm btn-outline-info float-end add-diagnosis-from-kb-btn" data-bs-toggle="modal"
+                    data-bs-target="#kbModal" data-category="Diagnosis">
+                    <i class="bi bi-book"></i> Add from Knowledge Base
+                </button>
+            </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     {{ form.name.label(class="form-label") }}
@@ -20,27 +26,25 @@
             </div>
             <div class="mb-3">
                 {{ form.description.label(class="form-label") }}
-                <button type="button" class="btn btn-sm btn-outline-info float-end" data-bs-toggle="modal" data-bs-target="#kbModal" data-category="Diagnosis">
-                    <i class="bi bi-book"></i> Add from Knowledge Base
-                </button>
                 {{ form.description(class="form-control", rows=4, id="diagDesc") }}
             </div>
             <div class="mb-3">
                 {{ form.result.label(class="form-label") }}
                 {{ form.result(class="form-control", rows=5) }}
             </div>
-            
-            <hr>
+
             <!-- Dynamic File Attachment Section -->
-            <div class="mb-3">
+            <div class="mb-3 add-diag-images-section">
                 <h5>Attach Files (Images, PDF, DOC, etc.)</h5>
                 <div id="file-container"></div>
-                <button type="button" id="add-file-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add File</button>
+                <button type="button" id="add-file-btn" class="btn btn-sm btn-outline-primary mt-2"><i
+                        class="bi bi-plus-circle"></i> Add File</button>
             </div>
 
             <div class="text-center mt-4">
                 {{ form.submit(class="btn btn-primary btn-lg") }}
-                <a href="{{ url_for('view_sample', sample_uid=sample.sample_uid) }}" class="btn btn-secondary btn-lg">Cancel</a>
+                <a href="{{ url_for('view_sample', sample_uid=sample.sample_uid) }}"
+                    class="btn btn-secondary btn-lg">Cancel</a>
             </div>
         </form>
     </div>
@@ -48,36 +52,36 @@
 
 <!-- Knowledge Base Modal -->
 <div class="modal fade" id="kbModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="kbModalLabel">Select from Knowledge Base</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-          <input type="text" id="kbSearch" class="form-control mb-3" placeholder="Search entries...">
-          <div class="list-group" id="kb-list">
-              <!-- Content will be loaded by JavaScript -->
-          </div>
-      </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="kbModalLabel">Select from Knowledge Base</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="kbSearch" class="form-control mb-3" placeholder="Search entries...">
+                <div class="list-group" id="kb-list">
+                    <!-- Content will be loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// This is the script for the dynamic file uploader
-document.addEventListener('DOMContentLoaded', function() {
-    const addFileBtn = document.getElementById('add-file-btn');
-    const fileContainer = document.getElementById('file-container');
-    let fileCounter = 0;
+    // This is the script for the dynamic file uploader
+    document.addEventListener('DOMContentLoaded', function () {
+        const addFileBtn = document.getElementById('add-file-btn');
+        const fileContainer = document.getElementById('file-container');
+        let fileCounter = 0;
 
-    addFileBtn.addEventListener('click', function() {
-        const fileRow = document.createElement('div');
-        fileRow.classList.add('row', 'mb-3', 'align-items-center', 'file-entry');
-        
-        fileRow.innerHTML = `
+        addFileBtn.addEventListener('click', function () {
+            const fileRow = document.createElement('div');
+            fileRow.classList.add('row', 'mb-3', 'align-items-center', 'file-entry');
+
+            fileRow.innerHTML = `
             <div class="col-md-3">
                 <div class="preview-area p-2 border rounded text-center">
                     <img src="https://placehold.co/600x400/f8f9fa/ccc?text=Preview" class="img-fluid rounded preview-img" style="display: none;">
@@ -92,95 +96,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn btn-sm btn-danger remove-btn">X</button>
             </div>
         `;
-        
-        fileContainer.appendChild(fileRow);
-        fileCounter++;
 
-        const fileInput = fileRow.querySelector('.file-input');
-        const captionInput = fileRow.querySelector('.caption-input');
-        const previewImg = fileRow.querySelector('.preview-img');
-        const fileNameDisplay = fileRow.querySelector('.file-name-display');
+            fileContainer.appendChild(fileRow);
+            fileCounter++;
 
-        fileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                captionInput.value = file.name;
-                
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
-                        previewImg.style.display = 'block';
-                        fileNameDisplay.style.display = 'none';
+            const fileInput = fileRow.querySelector('.file-input');
+            const captionInput = fileRow.querySelector('.caption-input');
+            const previewImg = fileRow.querySelector('.preview-img');
+            const fileNameDisplay = fileRow.querySelector('.file-name-display');
+
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    captionInput.value = file.name;
+
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            previewImg.src = e.target.result;
+                            previewImg.style.display = 'block';
+                            fileNameDisplay.style.display = 'none';
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewImg.style.display = 'none';
+                        fileNameDisplay.textContent = file.name;
+                        fileNameDisplay.style.display = 'block';
                     }
-                    reader.readAsDataURL(file);
-                } else {
-                    previewImg.style.display = 'none';
-                    fileNameDisplay.textContent = file.name;
-                    fileNameDisplay.style.display = 'block';
                 }
-            }
-        });
-
-        fileRow.querySelector('.remove-btn').addEventListener('click', function() {
-            fileRow.remove();
-        });
-    });
-
-    // --- NEW: Script for Knowledge Base Modal ---
-    const kbModal = document.getElementById('kbModal');
-    const kbList = document.getElementById('kb-list');
-    const kbSearch = document.getElementById('kbSearch');
-    let kbData = [];
-
-    kbModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        const category = button.getAttribute('data-category');
-        
-        fetch(`{{ url_for('kb.search_kb', category='_CATEGORY_') }}`.replace('_CATEGORY_', category))
-            .then(response => response.json())
-            .then(data => {
-                kbData = data;
-                renderKbList(data);
             });
-    });
 
-    function renderKbList(data) {
-        kbList.innerHTML = '';
-        if (data.length === 0) {
-            kbList.innerHTML = '<p class="text-center text-muted">No entries found.</p>';
-            return;
-        }
-        data.forEach(entry => {
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.classList.add('list-group-item', 'list-group-item-action');
-            item.innerHTML = `
+            fileRow.querySelector('.remove-btn').addEventListener('click', function () {
+                fileRow.remove();
+            });
+        });
+
+        // --- NEW: Script for Knowledge Base Modal ---
+        const kbModal = document.getElementById('kbModal');
+        const kbList = document.getElementById('kb-list');
+        const kbSearch = document.getElementById('kbSearch');
+        let kbData = [];
+
+        kbModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const category = button.getAttribute('data-category');
+
+            fetch(`{{ url_for('kb.search_kb', category='_CATEGORY_') }}`.replace('_CATEGORY_', category))
+                .then(response => response.json())
+                .then(data => {
+                    kbData = data;
+                    renderKbList(data);
+                });
+        });
+
+        function renderKbList(data) {
+            kbList.innerHTML = '';
+            if (data.length === 0) {
+                kbList.innerHTML = '<p class="text-center text-muted">No entries found.</p>';
+                return;
+            }
+            data.forEach(entry => {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.classList.add('list-group-item', 'list-group-item-action');
+                item.innerHTML = `
                 <div class="d-flex w-100 justify-content-between">
                     <h6 class="mb-1">${entry.name}</h6>
                     <small>${entry.title || ''}</small>
                 </div>
                 <p class="mb-1 small text-muted">${entry.description.substring(0, 100)}...</p>
             `;
-            item.addEventListener('click', () => {
-                document.getElementById('diagName').value = entry.name;
-                document.getElementById('diagTitle').value = entry.title || '';
-                document.getElementById('diagDesc').value = entry.description;
-                bootstrap.Modal.getInstance(kbModal).hide();
+                item.addEventListener('click', () => {
+                    document.getElementById('diagName').value = entry.name;
+                    document.getElementById('diagTitle').value = entry.title || '';
+                    document.getElementById('diagDesc').value = entry.description;
+                    bootstrap.Modal.getInstance(kbModal).hide();
+                });
+                kbList.appendChild(item);
             });
-            kbList.appendChild(item);
-        });
-    }
+        }
 
-    kbSearch.addEventListener('keyup', () => {
-        const searchTerm = kbSearch.value.toLowerCase();
-        const filteredData = kbData.filter(entry => 
-            entry.name.toLowerCase().includes(searchTerm) ||
-            (entry.title && entry.title.toLowerCase().includes(searchTerm)) ||
-            entry.description.toLowerCase().includes(searchTerm)
-        );
-        renderKbList(filteredData);
+        kbSearch.addEventListener('keyup', () => {
+            const searchTerm = kbSearch.value.toLowerCase();
+            const filteredData = kbData.filter(entry =>
+                entry.name.toLowerCase().includes(searchTerm) ||
+                (entry.title && entry.title.toLowerCase().includes(searchTerm)) ||
+                entry.description.toLowerCase().includes(searchTerm)
+            );
+            renderKbList(filteredData);
+        });
     });
-});
 </script>
 {% endblock %}

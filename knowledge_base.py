@@ -58,7 +58,6 @@ def delete_entry(entry_id):
     flash('Knowledge base entry has been deleted.', 'success')
     return redirect(url_for('kb.dashboard'))
 
-# NEW: Route to handle CSV file imports
 @kb_bp.route('/import', methods=['POST'])
 @login_required
 def import_csv():
@@ -74,14 +73,13 @@ def import_csv():
 
     if file and file.filename.endswith('.csv'):
         try:
-            # Read the CSV file in memory
             stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
             csv_reader = csv.DictReader(stream)
             
             count = 0
             for row in csv_reader:
-                # Normalize headers (lowercase, strip spaces)
-                row = {k.lower().strip(): v for k, v in row.items()}
+                # UPDATED: This line now safely handles potentially empty column headers
+                row = {k.lower().strip(): v for k, v in row.items() if k is not None}
 
                 if category == 'Diagnosis':
                     new_entry = KnowledgeBase(
@@ -97,7 +95,7 @@ def import_csv():
                         description=row.get('description')
                     )
                 else:
-                    continue # Skip if category is invalid
+                    continue
                 
                 db.session.add(new_entry)
                 count += 1

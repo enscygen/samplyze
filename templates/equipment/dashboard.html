@@ -1,0 +1,164 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Equipment Log</h1>
+    <div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload"></i> Import CSV</button>
+        <a href="{{ url_for('equipment.export_csv') }}" class="btn btn-primary"><i class="bi bi-download"></i> Export CSV</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Add New Equipment</h5></div>
+            <div class="card-body">
+                <form action="{{ url_for('equipment.add_equipment') }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-2">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.id_number.label(class="form-label") }}{{ form.id_number(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.serial_number.label(class="form-label") }}{{ form.serial_number(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.make_model.label(class="form-label") }}{{ form.make_model(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.location.label(class="form-label") }}{{ form.location(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.purchase_date.label(class="form-label") }}{{ form.purchase_date(class="form-control form-control-sm") }}</div>
+                    <div class="mb-2">{{ form.last_calibration_date.label(class="form-label") }}{{ form.last_calibration_date(class="form-control form-control-sm") }}</div>
+                    <div class="form-check mb-3">{{ form.multi_user(class="form-check-input") }} {{ form.multi_user.label(class="form-check-label") }}</div>
+                    <div class="d-grid">{{ form.submit(class="btn btn-primary") }}</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6"><h5 class="mb-0">Equipment List</h5></div>
+                    <div class="col-md-6">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, ID, or location...">
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name / Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equipmentTable">
+                        {% for eq in all_equipment %}
+                        <tr>
+                            <td>
+                                <strong>{{ eq.name }}</strong><br>
+                                <small class="text-muted">ID: {{ eq.id_number }} | Location: {{ eq.location or 'N/A' }}</small>
+                            </td>
+                            <td>
+                                {% if eq.id in active_log_map %}
+                                    <span class="badge bg-primary">In Use</span> by
+                                    {% for log in active_log_map[eq.id] %}
+                                        <span class="badge bg-secondary">{{ log.user.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="badge bg-success">Available</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% set user_log = active_log_map.get(eq.id, [])|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                {% if user_log %}
+                                    <form action="{{ url_for('equipment.end_log', log_id=user_log.id) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-warning">End Use</button>
+                                    </form>
+                                {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#logModal{{ eq.id }}">Start Use</button>
+                                {% endif %}
+                                <a href="{{ url_for('equipment.view_logs', equipment_id=eq.id) }}" class="btn btn-sm btn-outline-info" title="View Logs"><i class="bi bi-clock-history"></i></a>
+                                <a href="{{ url_for('equipment.edit_equipment', equipment_id=eq.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-center">No equipment has been added yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Log Usage Modals -->
+{% for eq in all_equipment %}
+<div class="modal fade" id="logModal{{ eq.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Start Using: {{ eq.name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('equipment.start_log', equipment_id=eq.id) }}" method="POST">
+          <div class="modal-body">
+              <p>Confirm that you are starting a new usage log for this equipment.</p>
+              <div class="mb-3">
+                  <label for="notes{{ eq.id }}" class="form-label">Notes (Optional, e.g., Sample ID)</label>
+                  <textarea class="form-control" id="notes{{ eq.id }}" name="notes" rows="2"></textarea>
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Confirm Entry</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import Equipment from CSV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('equipment.import_csv') }}" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
+              <p>Select a CSV file to import. The file must have the following headers (in any order):<br>
+              <code>id_number, serial_number, name, make_and_model, purchase_date, last_calibration_date, multi_user, location</code></p>
+              <input type="file" name="file" class="form-control" accept=".csv" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Import</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('equipmentTable');
+    const rows = tableBody.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function(event) {
+        const filter = event.target.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            const firstCell = rows[i].getElementsByTagName('td')[0];
+            if (firstCell) {
+                if (firstCell.textContent.toLowerCase().indexOf(filter) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

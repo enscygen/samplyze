@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_from_directory, make_response
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_from_directory, make_response, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,16 +10,19 @@ from markupsafe import Markup, escape
 from jinja2.filters import pass_eval_context
 import socket
 import sys
+import csv
+import io
 
 # Import forms, models, and utility functions from other files
 from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm
-from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient
+from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient, AuditLog
 from utils import generate_uid, generate_sample_uid
 # Import the blueprint
 from fileshare import fileshare_bp
 from mail import mail_bp
 from knowledge_base import kb_bp
 from migrate_data import run_migration
+from equipment import equipment_bp
 
 # --- PyInstaller Path Correction ---
 # This is a special check to see if the app is running as a bundled executable.
@@ -57,6 +60,7 @@ login_manager.login_view = 'login'
 app.register_blueprint(fileshare_bp)
 app.register_blueprint(mail_bp)
 app.register_blueprint(kb_bp)
+app.register_blueprint(equipment_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
@@ -98,8 +102,77 @@ def delete_file(filename):
     except Exception as e:
         print(f"Error deleting file {filename}: {e}") # Log error
         
-        
+def log_action(action, user_id=None):
+    """Logs an action to the audit trail."""
+    if user_id is None and current_user.is_authenticated:
+        user_id = current_user.id
+    
+    log_entry = AuditLog(user_id=user_id, action=action)
+    db.session.add(log_entry)
+    # We commit immediately to ensure logs are saved even if the main transaction fails
+    db.session.commit()
+     
 # --- Add this new route to your app.py file ---
+@app.route('/admin/audit-log')
+@admin_required
+def audit_log():
+    # Get filter parameters from the URL
+    search_query = request.args.get('q', '')
+    
+    query = AuditLog.query
+
+    if search_query:
+        # Filter by user name or action description
+        query = query.join(User).filter(
+            db.or_(
+                User.name.ilike(f'%{search_query}%'),
+                AuditLog.action.ilike(f'%{search_query}%')
+            )
+        )
+        
+    logs = query.order_by(AuditLog.timestamp.desc()).all()
+    return render_template('admin/audit_log.html', title='Audit Log', logs=logs, search_query=search_query)
+
+# Add this new route function after the audit_log function
+@app.route('/admin/audit-log/export')
+@admin_required
+def audit_log_export():
+    search_query = request.args.get('q', '')
+    
+    query = AuditLog.query
+
+    if search_query:
+        query = query.join(User).filter(
+            db.or_(
+                User.name.ilike(f'%{search_query}%'),
+                AuditLog.action.ilike(f'%{search_query}%')
+            )
+        )
+        
+    logs = query.order_by(AuditLog.timestamp.desc()).all()
+
+    # Generate CSV in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write headers
+    writer.writerow(['Timestamp (IST)', 'User', 'Action'])
+    
+    # Write data
+    for log in logs:
+        writer.writerow([
+            log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            log.user.name if log.user else 'System',
+            log.action
+        ])
+    
+    output.seek(0)
+    
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=audit_log_export.csv"}
+    )
 
 @app.route('/network-info')
 @login_required
@@ -144,6 +217,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user, remember=form.remember_me.data)
+            log_action(f"User '{user.username}' logged in.")
             next_page = request.args.get('next')
             flash('Logged in successfully!', 'success')
             return redirect(next_page) if next_page else redirect(url_for('index'))
@@ -154,6 +228,7 @@ def login():
 @app.route('/logout')
 @login_required
 def logout():
+    log_action(f"User '{current_user.username}' logged out.")
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('login'))
@@ -177,6 +252,7 @@ def manage_staff():
         new_staff = User(username=form.staff_id.data, name=form.name.data, password_hash=hashed_password, role=form.role.data, department_id=form.department.data)
         db.session.add(new_staff)
         db.session.commit()
+        log_action(f"Admin created new staff member '{new_staff.name}' (Username: {new_staff.username}).")
         flash('New staff member has been added.', 'success')
         return redirect(url_for('manage_staff'))
     staff_list = User.query.filter(User.role != 'admin').all()
@@ -195,6 +271,7 @@ def edit_staff(staff_id):
         if form.password.data:
             staff.password_hash = generate_password_hash(form.password.data, method='pbkdf2:sha256')
         db.session.commit()
+        log_action(f"Admin updated details for staff member '{staff.name}'.")
         flash('Staff member has been updated.', 'success')
         return redirect(url_for('manage_staff'))
     elif request.method == 'GET':
@@ -210,6 +287,7 @@ def delete_staff(staff_id):
         return redirect(url_for('manage_staff'))
     db.session.delete(staff_to_delete)
     db.session.commit()
+    log_action(f"Admin deleted staff member '{staff_to_delete.name}'.")
     flash(f'Staff member {staff_to_delete.name} has been deleted.', 'success')
     return redirect(url_for('manage_staff'))
 
@@ -223,6 +301,7 @@ def manage_departments():
             new_dept = Department(name=dept_name)
             db.session.add(new_dept)
             db.session.commit()
+            log_action(f"Admin created new department '{new_dept.name}'.")
             flash(f'Department "{dept_name}" added.', 'success')
         else:
             flash('Department name cannot be empty or already exists.', 'danger')
@@ -236,6 +315,7 @@ def delete_department(dept_id):
     dept_to_delete = Department.query.get_or_404(dept_id)
     db.session.delete(dept_to_delete)
     db.session.commit()
+    log_action(f"Admin deleted department '{dept_to_delete.name}'.")
     flash(f'Department "{dept_to_delete.name}" has been deleted. Staff and samples have been unassigned.', 'success')
     return redirect(url_for('manage_departments'))
 
@@ -263,6 +343,7 @@ def lab_settings():
             settings.logo_path = unique_filename
 
         db.session.commit()
+        log_action("Admin updated laboratory settings.")
         flash('Lab settings updated successfully.', 'success')
         return redirect(url_for('lab_settings'))
     return render_template('admin/settings.html', title='Lab Settings', form=form, settings=settings)
@@ -315,6 +396,7 @@ def add_applicant():
         new_applicant = Applicant(uid=generate_uid(), name=form.name.data, gender=form.gender.data, dob=form.dob.data, phone=form.phone.data, email=form.email.data, occupation=form.occupation.data, id_card_type=form.id_card_type.data, id_card_number=form.id_card_number.data, house_name=form.house_name.data, village=form.village.data, city=form.city.data, pincode=form.pincode.data, district=form.district.data, state=form.state.data, country=form.country.data, remarks=form.remarks.data, overview=form.overview.data)
         db.session.add(new_applicant)
         db.session.commit()
+        log_action(f"Created new applicant '{new_applicant.name}' (UID: {new_applicant.uid}).")
         flash(f'New applicant {new_applicant.name} added with UID: {new_applicant.uid}', 'success')
         return redirect(url_for('dashboard'))
     return render_template('staff/add_applicant.html', title='Add New Applicant (OA)', form=form)
@@ -327,6 +409,7 @@ def edit_applicant(uid):
     if form.validate_on_submit():
         form.populate_obj(applicant)
         db.session.commit()
+        log_action(f"Updated applicant '{applicant.name}' (UID: {applicant.uid}).")
         flash(f'Applicant {applicant.name} has been updated.', 'success')
         return redirect(url_for('view_applicant', uid=applicant.uid))
     return render_template('staff/edit_applicant.html', title='Edit Applicant', form=form, applicant=applicant)
@@ -355,6 +438,7 @@ def delete_applicant(uid):
 
     db.session.delete(applicant)
     db.session.commit()
+    log_action(f"Deleted applicant '{applicant.name}' and all associated data.")
     flash(f'Applicant {applicant.name} and all associated data have been deleted.', 'success')
     return redirect(url_for('dashboard'))
 
@@ -391,6 +475,7 @@ def add_nsc(uid):
             i += 1
         
         db.session.commit()
+        log_action(f"Created new NSC for applicant '{applicant.name}'.")
         flash(f'New NSC record added for {applicant.name}.', 'success')
         return redirect(url_for('view_applicant', uid=applicant.uid))
 
@@ -456,6 +541,7 @@ def delete_nsc(nsc_id):
         
     db.session.delete(nsc)
     db.session.commit()
+    log_action(f"Deleted NSC (ID: {nsc_id}) for applicant '{nsc.applicant.name}'.")
     flash('NSC record and its images have been deleted.', 'success')
     return redirect(url_for('view_applicant', uid=applicant_uid))
 
@@ -508,6 +594,7 @@ def add_sample(uid):
             i += 1
 
         db.session.commit()
+        log_action(f"Created new sample '{new_sample.sample_uid}' for applicant '{applicant.name}'.")
         flash(f'New sample {new_sample.sample_uid} has been added for {applicant.name}.', 'success')
         return redirect(url_for('view_sample', sample_uid=new_sample.sample_uid))
     return render_template('staff/add_sample.html', title='Add Sample Consultancy', form=form, applicant=applicant)
@@ -545,6 +632,7 @@ def add_diagnosis(sample_uid):
             i += 1
 
         db.session.commit()
+        log_action(f"Added new diagnosis '{new_diagnosis.title}' to sample '{sample.sample_uid}'.")
         flash('New diagnosis and attachments have been added successfully.', 'success')
         return redirect(url_for('view_sample', sample_uid=sample.sample_uid))
     return render_template('staff/add_diagnosis.html', title='Add Diagnosis', form=form, sample=sample)
@@ -599,6 +687,7 @@ def delete_diagnosis(diagnosis_id):
         
     db.session.delete(diagnosis)
     db.session.commit()
+    log_action(f"Deleted diagnosis '{diagnosis.title}' from sample '{sample_uid}'.")
     flash('Diagnosis and all its attachments have been deleted.', 'success')
     return redirect(url_for('view_sample', sample_uid=sample_uid))
 
@@ -651,6 +740,7 @@ def edit_sample(sample_uid):
             i += 1
 
         db.session.commit()
+        log_action(f"Updated sample '{sample.sample_uid}'.")
         flash(f'Sample {sample.sample_uid} has been updated.', 'success')
         return redirect(url_for('view_sample', sample_uid=sample.sample_uid))
     
@@ -675,6 +765,7 @@ def delete_sample(sample_uid):
             
     db.session.delete(sample)
     db.session.commit()
+    log_action(f"Deleted sample '{sample.sample_uid}' and all its data.")
     flash(f'Sample {sample.sample_uid} and all its data have been deleted.', 'success')
     return redirect(url_for('view_applicant', uid=applicant_uid))
 

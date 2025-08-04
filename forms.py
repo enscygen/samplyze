@@ -153,3 +153,18 @@ class DBMigrationForm(FlaskForm):
         FileAllowed(['db'], 'Only .db database files are allowed!')
     ])
     submit = SubmitField('Migrate Data')
+    
+class AddEquipmentForm(FlaskForm):
+    id_number = StringField('ID Number', validators=[DataRequired()])
+    serial_number = StringField('Serial Number', validators=[Optional()])
+    name = StringField('Equipment Name', validators=[DataRequired()])
+    make_model = StringField('Make & Model', validators=[Optional()])
+    location = StringField('Location', validators=[Optional()])
+    purchase_date = DateField('Purchase Date', format='%Y-%m-%d', validators=[Optional()])
+    last_calibration_date = DateField('Last Calibration Date', format='%Y-%m-%d', validators=[Optional()])
+    multi_user = BooleanField('Allow Multiple Concurrent Users')
+    submit = SubmitField('Add Equipment')
+
+class LogUsageForm(FlaskForm):
+    notes = TextAreaField('Notes / Sample ID', render_kw={'rows': 3})
+    submit = SubmitField('Confirm Entry')

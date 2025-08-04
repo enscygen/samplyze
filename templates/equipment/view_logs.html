@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <div>
+        <h1 class="h2 mb-0">Usage Log for: <span class="text-primary">{{ equipment.name }}</span></h1>
+        <p class="text-muted mb-0">Location: {{ equipment.location or 'N/A' }}</p>
+    </div>
+    <div>
+        <a href="{{ url_for('equipment.export_logs_csv', equipment_id=equipment.id) }}" class="btn btn-success"><i class="bi bi-download"></i> Download Log as CSV</a>
+        <a href="{{ url_for('equipment.dashboard') }}" class="btn btn-secondary">Back to Equipment List</a>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Duration</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td>{{ log.user.name }}</td>
+                        <td>{{ log.start_time.strftime('%d-%b-%Y %I:%M %p') }}</td>
+                        <td>{{ log.end_time.strftime('%d-%b-%Y %I:%M %p') if log.end_time else 'In Use' }}</td>
+                        <td>
+                            {% if log.end_time %}
+                                {{ (log.end_time - log.start_time).total_seconds() | int // 60 }} mins
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{{ log.notes }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No usage logs found for this equipment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -217,3 +217,31 @@ class KnowledgeBase(db.Model):
     name = db.Column(db.String(150), nullable=False)    # e.g., "Fungal Test" or "Pest Infestation"
     title = db.Column(db.String(150), nullable=True)     # Only for Diagnosis
     description = db.Column(db.Text, nullable=True)    # For Diagnosis Method or Remedy Details
+    
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=get_ist_time, nullable=False)
+    user = db.relationship('User')
+    
+class Equipment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    id_number = db.Column(db.String(100), unique=True, nullable=False)
+    serial_number = db.Column(db.String(100), unique=True, nullable=True)
+    name = db.Column(db.String(150), nullable=False)
+    location = db.Column(db.String(150))
+    make_model = db.Column(db.String(200))
+    purchase_date = db.Column(db.Date)
+    last_calibration_date = db.Column(db.Date)
+    multi_user = db.Column(db.Boolean, default=False)
+    logs = db.relationship('EquipmentLog', backref='equipment', cascade="all, delete-orphan")
+
+class EquipmentLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    equipment_id = db.Column(db.Integer, db.ForeignKey('equipment.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_time = db.Column(db.DateTime, default=get_ist_time, nullable=False)
+    end_time = db.Column(db.DateTime, nullable=True)
+    notes = db.Column(db.Text)
+    user = db.relationship('User')
