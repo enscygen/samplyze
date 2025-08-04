@@ -23,6 +23,7 @@ from mail import mail_bp
 from knowledge_base import kb_bp
 from migrate_data import run_migration
 from equipment import equipment_bp
+from backup_restore import backup_bp
 
 # --- PyInstaller Path Correction ---
 # This is a special check to see if the app is running as a bundled executable.
@@ -61,6 +62,7 @@ app.register_blueprint(fileshare_bp)
 app.register_blueprint(mail_bp)
 app.register_blueprint(kb_bp)
 app.register_blueprint(equipment_bp)
+app.register_blueprint(backup_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')

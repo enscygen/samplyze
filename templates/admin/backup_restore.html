@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Backup & Restore</h1>
+</div>
+
+<div class="row">
+    <!-- Create Backup Section -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Create Backup</h5>
+            </div>
+            <div class="card-body">
+                <p>Click the button below to create a complete backup of the application. This will generate a single <code>.zip</code> file containing:</p>
+                <ul>
+                    <li>The entire database (<code>laboratory.db</code>).</li>
+                    <li>All uploaded files (from samples, diagnoses, etc.).</li>
+                    <li>All shared files from the File Sharing module.</li>
+                </ul>
+                <p>Download this file and store it in a safe, external location.</p>
+                <a href="{{ url_for('backup.create_backup') }}" class="btn btn-primary"><i class="bi bi-download"></i> Create and Download Backup</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restore from Backup Section -->
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Restore from Backup</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> Restoring from a backup is a destructive action. It will completely **overwrite** the current database and all uploaded files with the contents of the backup file.
+                </div>
+
+                <form method="POST" action="{{ url_for('backup.restore_backup') }}" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.backup_file.label(class="form-label") }}
+                        {{ form.backup_file(class="form-control") }}
+                        {% if form.backup_file.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.backup_file.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-danger") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

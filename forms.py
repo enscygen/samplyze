@@ -168,3 +168,10 @@ class AddEquipmentForm(FlaskForm):
 class LogUsageForm(FlaskForm):
     notes = TextAreaField('Notes / Sample ID', render_kw={'rows': 3})
     submit = SubmitField('Confirm Entry')
+    
+class RestoreForm(FlaskForm):
+    backup_file = FileField('Select Backup File (.zip)', validators=[
+        DataRequired(),
+        FileAllowed(['zip'], 'Only .zip backup files are allowed!')
+    ])
+    submit = SubmitField('Restore from Backup')

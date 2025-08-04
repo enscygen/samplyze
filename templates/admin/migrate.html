@@ -15,17 +15,17 @@
                 <div class="alert alert-danger">
                     <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning: Destructive Action</h4>
                     <p>This is an advanced feature for updating the application from a previous version. Proceeding will **permanently delete all data** currently in this application's database (including any users, applicants, or samples you have created since the last update).</p>
-                    <hr>
+                    
                     <p class="mb-0">The system will then attempt to import the data from your uploaded file. It is strongly recommended to back up your current <strong>instance/laboratory.db</strong> file before proceeding.</p>
                 </div>
-                <hr>
+               
                 <h6>Instructions:</h6>
                 <ol>
                     <li>Locate your old database file (e.g., `laboratory.db` from a previous version).</li>
                     <li>Select the file using the button below.</li>
                     <li>Click "Migrate Data" to begin the process.</li>
                 </ol>
-                <hr>
+                
                 <form method="POST" action="" enctype="multipart/form-data" novalidate>
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
