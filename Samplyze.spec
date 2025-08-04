@@ -4,6 +4,7 @@
 
 import os
 
+# Get the directory where this spec file is located
 HERE = os.path.abspath(os.path.dirname(SPECPATH))
 
 a = Analysis(
@@ -11,8 +12,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        # UPDATED: Simplified paths and added the 'shared_files' directory.
-        # This is a more robust way to include data files.
+        # This is the most important part: it bundles your data files.
+        # The format is ('source_path', 'destination_in_bundle')
         ('templates', 'templates'),
         ('static', 'static'),
         ('instance', 'instance'),
@@ -44,7 +45,7 @@ exe = EXE(
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,  # Set to False for a windowed app (no command prompt)
+    console=False,  # Set to False to run without a command prompt window
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

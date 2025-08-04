@@ -26,30 +26,32 @@ from equipment import equipment_bp
 from backup_restore import backup_bp
 
 # --- PyInstaller Path Correction ---
-# This is a special check to see if the app is running as a bundled executable.
 if getattr(sys, 'frozen', False):
-    # If so, we need to tell Flask where to find the template and static folders.
-    template_folder = os.path.join(sys._MEIPASS, 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'static')
+    # If the application is run as a bundle (e.g., by PyInstaller)
+    basedir = sys._MEIPASS
+    template_folder = os.path.join(basedir, 'templates')
+    static_folder = os.path.join(basedir, 'static')
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
-    # If running normally (e.g., with 'python run.py'), it behaves as before.
+    # If running normally (e.g., with 'python run.py')
+    basedir = os.path.abspath(os.path.dirname(__file__))
     app = Flask(__name__)
-
-# --- App Initialization and Configuration ---
-app = Flask(__name__)
+ 
+# --- App Configuration using the new 'basedir' ---
 app.config['SECRET_KEY'] = 'a-very-secret-key-that-should-be-changed'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance/laboratory.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance/laboratory.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
-app.config['SHARED_FOLDER'] = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'shared_files')
+app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'appfiles', 'uploads')
+app.config['SHARED_FOLDER'] = os.path.join(basedir, 'appfiles', 'shared_files')
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 # 50 MB upload limit
 
-# Ensure the upload and shared folders exist
+# Ensure the necessary data folders exist
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 if not os.path.exists(app.config['SHARED_FOLDER']):
     os.makedirs(app.config['SHARED_FOLDER'])
+if not os.path.exists(os.path.join(basedir, 'instance')):
+    os.makedirs(os.path.join(basedir, 'instance'))
 
 # --- Extensions Initialization ---
 db.init_app(app)
@@ -115,6 +117,11 @@ def log_action(action, user_id=None):
     db.session.commit()
      
 # --- Add this new route to your app.py file ---
+@app.route('/about')
+@login_required
+def about():
+    return render_template('about.html', title='About Samplyze')
+
 @app.route('/admin/audit-log')
 @admin_required
 def audit_log():

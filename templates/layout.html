@@ -86,7 +86,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('backup.index') }}" title="Backup & Restore" data-bs-placement="bottom">
+                        <a class="nav-link" href="{{ url_for('backup.index') }}" title="Backup & Restore"
+                            data-bs-placement="bottom">
                             <i class="bi bi-hdd-stack"></i><span class="d-lg-none ms-2">Backup & Restore</span>
                         </a>
                     </li>
@@ -94,6 +95,26 @@
                         <a class="nav-link" href="{{ url_for('migrate_database') }}" title="Migrate Database"
                             data-bs-placement="bottom">
                             <i class="bi bi-database-up"></i><span class="d-lg-none ms-2">Migrate Database</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{{ url_for('mail.inbox') }}" title="Mail"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-envelope"></i><span class="d-lg-none ms-2">Mail</span>
+                            {% if unread_mail_count > 0 %}
+                            <span
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                style="font-size: 0.6em;">
+                                {{ unread_mail_count }}
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about') }}" title="About Samplyze"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-info-circle"></i><span class="d-lg-none ms-2">About</span>
                         </a>
                     </li>
                     {% else %}
@@ -151,6 +172,12 @@
                         <a class="nav-link" href="{{ url_for('add_applicant') }}" title="Add Applicant"
                             data-bs-placement="bottom">
                             <i class="bi bi-person-plus"></i><span class="d-lg-none ms-2">Add OA</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('about') }}" title="About Samplyze"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-info-circle"></i><span class="d-lg-none ms-2">About</span>
                         </a>
                     </li>
                     {% endif %}

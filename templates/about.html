@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+
+    <!-- Header Section -->
+    <div class="p-5 mb-4 bg-dark rounded-3 text-white shadow-lg">
+        <div class="container-fluid py-4">
+            <h1 class="display-4 fw-bold">Samplyze</h1>
+            <p class="col-md-10 fs-4">A complete, self-contained, and offline-first Laboratory Information & Management System designed for efficiency and data integrity.</p>
+            <p class="lead mb-4"><strong>Version:</strong> 1.1.2 (August 2025 Release)</p>
+            <a href="https://enscygen.web.app/" class="btn btn-primary btn-lg" target="_blank" rel="noopener noreferrer">
+                <i class="bi bi-box-arrow-up-right me-2"></i>Visit Enscygen
+            </a>
+        </div>
+    </div>
+
+    <!-- Introduction Section -->
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="h-100 p-5 bg-light border rounded-3">
+                <h2>About The Application</h2>
+                <p>Samplyze was built to address the need for a robust, secure, and easy-to-use management system that can operate entirely within a local network without an internet connection. It provides a comprehensive suite of tools for administrators and laboratory staff to manage the entire lifecycle of client consultations and sample analysis, from initial contact to final reporting.</p>
+                <p>The application is divided into several powerful, interconnected modules designed to streamline workflows, ensure data consistency, and enhance collaboration within the lab.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Sections -->
+    <h2 class="pb-2 border-bottom mb-4">Feature Breakdown</h2>
+
+    <div class="row g-4">
+        <!-- Admin Features -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-person-gear me-2"></i>Administrator Portal</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">The admin portal provides high-level control over the entire application, focusing on user management, system configuration, and data security.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Staff Management:</strong> Create, edit, and delete user accounts. Assign roles (Staff, Consultant) and departments.</li>
+                        <li class="list-group-item"><strong>Department Management:</strong> Organize your lab by creating and deleting departments.</li>
+                        <li class="list-group-item"><strong>System Settings:</strong> Customize the application with your lab's name, logo, and contact details.</li>
+                        <li class="list-group-item"><strong>Password Control:</strong> Change the admin password securely and reset staff passwords when needed.</li>
+                        <li class="list-group-item"><strong>Audit Trail:</strong> View a comprehensive, searchable log of all key actions performed by users across the system.</li>
+                        <li class="list-group-item"><strong>Backup & Restore:</strong> Create a full backup of the database and all files with a single click, or restore the entire application from a backup file.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Features -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-person-workspace me-2"></i>Staff & Consultant Portal</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">The staff portal is the daily workspace for all lab activities, designed for efficient data entry and management.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Applicant Dashboard:</strong> A central hub to view and manage all applicants, with a live search filter.</li>
+                        <li class="list-group-item"><strong>Sample Dashboard:</strong> A comprehensive view of all samples in the lab, with live search and filtering by assigned staff.</li>
+                        <li class="list-group-item"><strong>Consultancy Management:</strong> Create, edit, and delete both Sampled (SC) and Non-Sampled (NSC) consultancy records.</li>
+                        <li class="list-group-item"><strong>Diagnosis Workflow:</strong> Add multiple, detailed diagnosis steps to any sample, complete with notes and file attachments.</li>
+                        <li class="list-group-item"><strong>Status Tracking:</strong> Update the status of samples as they move through the lab workflow (e.g., Submitted, In Progress, Report Ready).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collaboration Features -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-share-fill me-2"></i>Collaboration & Communication</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Integrated tools to help your team work together seamlessly and share information securely within your local network.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Internal Mail System:</strong> A secure messaging system for staff to communicate and share file attachments, with notifications for unread mail.</li>
+                        <li class="list-group-item"><strong>Folder-Based File Sharing:</strong> Create shared folders, manage user-specific permissions, and upload/download files via a drag-and-drop interface.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Management Features -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-database-fill-gear me-2"></i>Data & Knowledge Management</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Powerful tools for standardizing data entry, ensuring consistency, and managing lab resources efficiently.</p>
+                     <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>Equipment Logging:</strong> A complete module to track lab equipment usage, view log history, and manage your inventory.</li>
+                        <li class="list-group-item"><strong>Knowledge Base:</strong> A central repository for standardized diagnoses and remedies. Staff can quickly populate forms with pre-defined data, ensuring consistency and efficiency.</li>
+                        <li class="list-group-item"><strong>CSV Import/Export:</strong> Easily bulk-add or backup data for the Knowledge Base and Equipment Log.</li>
+                        <li class="list-group-item"><strong>Print-Friendly Reporting:</strong> Generate clean, professional reports for applicants and samples with a single click.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
