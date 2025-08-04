@@ -5499,6 +5499,9 @@ fieldset:disabled .btn {
     border-radius: var(--bs-alert-border-radius);
     font-size: 0.8rem;
     padding: 10px 10px;
+}
+
+.alert.alert-dismissible {
     display: flex;
     align-items: center;
     gap: 10px;

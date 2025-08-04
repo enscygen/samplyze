@@ -1,7 +1,7 @@
 import os
 import csv
 import io
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_login import login_required, current_user
 
 from models import db, KnowledgeBase
@@ -112,6 +112,31 @@ def import_csv():
 
     return redirect(url_for('kb.dashboard'))
 
+@kb_bp.route('/export/<category>')
+@login_required
+def export_csv(category):
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    entries = KnowledgeBase.query.filter_by(category=category).all()
+    
+    # Write headers
+    if category == 'Diagnosis':
+        writer.writerow(['name', 'title', 'description'])
+        for entry in entries:
+            writer.writerow([entry.name, entry.title, entry.description])
+    elif category == 'Remedy':
+        writer.writerow(['name', 'description'])
+        for entry in entries:
+            writer.writerow([entry.name, entry.description])
+    
+    output.seek(0)
+    
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment;filename=kb_{category.lower()}_export.csv"}
+    )
 
 # API endpoint for live search
 @kb_bp.route('/api/search/<category>')

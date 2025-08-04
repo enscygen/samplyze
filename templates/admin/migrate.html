@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Migrate from Old Database</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Upload Old Database File</h5>
+            </div>
+            <div class="card-body">
+                <!-- UPDATED: More detailed and explicit warning -->
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning: Destructive Action</h4>
+                    <p>This is an advanced feature for updating the application from a previous version. Proceeding will **permanently delete all data** currently in this application's database (including any users, applicants, or samples you have created since the last update).</p>
+                    <hr>
+                    <p class="mb-0">The system will then attempt to import the data from your uploaded file. It is strongly recommended to back up your current <strong>instance/laboratory.db</strong> file before proceeding.</p>
+                </div>
+                <hr>
+                <h6>Instructions:</h6>
+                <ol>
+                    <li>Locate your old database file (e.g., `laboratory.db` from a previous version).</li>
+                    <li>Select the file using the button below.</li>
+                    <li>Click "Migrate Data" to begin the process.</li>
+                </ol>
+                <hr>
+                <form method="POST" action="" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.db_file.label(class="form-label") }}
+                        {{ form.db_file(class="form-control") }}
+                        {% if form.db_file.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.db_file.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="text-center mt-4">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

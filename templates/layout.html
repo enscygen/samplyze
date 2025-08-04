@@ -62,6 +62,16 @@
                             <i class="bi bi-gear"></i><span class="d-lg-none ms-2">Settings</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('migrate_database') }}" title="Migrate Database">
+                            <i class="bi bi-database-up"></i><span class="d-lg-none ms-2">Migrate Database</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info">
+                            <i class="bi bi-wifi"></i><span class="d-lg-none ms-2">Network Info</span>
+                        </a>
+                    </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}" title="OA Dashboard">

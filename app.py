@@ -12,13 +12,14 @@ import socket
 import sys
 
 # Import forms, models, and utility functions from other files
-from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm
+from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm
 from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient
 from utils import generate_uid, generate_sample_uid
 # Import the blueprint
 from fileshare import fileshare_bp
 from mail import mail_bp
 from knowledge_base import kb_bp
+from migrate_data import run_migration
 
 # --- PyInstaller Path Correction ---
 # This is a special check to see if the app is running as a bundled executable.
@@ -706,6 +707,36 @@ def sample_report(sample_uid):
 def nsc_report(nsc_id):
     nsc = ConsultancyNSC.query.get_or_404(nsc_id)
     return render_template('reports/nsc_report.html', nsc=nsc)
+
+@app.route('/admin/migrate', methods=['GET', 'POST'])
+@admin_required
+def migrate_database():
+    form = DBMigrationForm()
+    if form.validate_on_submit():
+        old_db_file = form.db_file.data
+        
+        # Save the uploaded file temporarily
+        temp_path = os.path.join('instance', 'temp_old_db.db')
+        old_db_file.save(temp_path)
+        
+        # Get the path to the current database
+        current_db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+
+        # Call the migration function from the separate script
+        success, message = run_migration(new_db_path=current_db_path, old_db_path=temp_path)
+
+        # Clean up the temporary file
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        
+        if success:
+            flash(message, 'success')
+        else:
+            flash(message, 'danger')
+
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin/migrate.html', title='Migrate Database', form=form)
 
 @app.context_processor
 def inject_unread_mail_count():

@@ -146,3 +146,10 @@ class KnowledgeBaseForm(FlaskForm):
     title = StringField('Title (for Diagnosis only)', validators=[Optional()])
     description = TextAreaField('Description / Method / Remedy Details', validators=[DataRequired()], render_kw={'rows': 5})
     submit = SubmitField('Save Entry')
+
+class DBMigrationForm(FlaskForm):
+    db_file = FileField('Select Old Database File', validators=[
+        DataRequired(), 
+        FileAllowed(['db'], 'Only .db database files are allowed!')
+    ])
+    submit = SubmitField('Migrate Data')

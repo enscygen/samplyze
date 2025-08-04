@@ -11,7 +11,10 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Diagnosis Entries</h5>
-                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Diagnosis">Import CSV</button>
+                <div class="btn-group">
+                    <a href="{{ url_for('kb.export_csv', category='Diagnosis') }}" class="btn btn-sm btn-outline-primary">Download CSV</a>
+                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Diagnosis">Import CSV</button>
+                </div>
             </div>
             <div class="list-group list-group-flush">
                 {% for entry in diagnoses %}
@@ -37,7 +40,10 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Remedy Entries</h5>
-                 <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Remedy">Import CSV</button>
+                 <div class="btn-group">
+                    <a href="{{ url_for('kb.export_csv', category='Remedy') }}" class="btn btn-sm btn-outline-primary">Download CSV</a>
+                    <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#importModal" data-category="Remedy">Import CSV</button>
+                </div>
             </div>
              <div class="list-group list-group-flush">
                 {% for entry in remedies %}
