@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Visitor Pass: {{ visitor.visitor_uid }}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 11pt;
+        }
+
+        .pass-container {
+            width: 350px;
+            border: 2px solid #000;
+            padding: 15px;
+            margin: auto;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .header h3 {
+            margin: 0;
+        }
+
+        .photo {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .photo img {
+            max-width: 150px;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+
+        .details-table {
+            width: 100%;
+        }
+
+        .details-table td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        .barcode-section {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .id-box {
+            border: 1px solid #999;
+            height: 40px;
+            margin-top: 5px;
+        }
+
+        .id-box-label {
+            font-size: 8pt;
+            color: #555;
+            text-align: center;
+        }
+
+        .signatures {
+            margin-top: 40px;
+        }
+
+        .sig-line {
+            border-top: 1px dotted #000;
+            margin-top: 30px;
+        }
+
+        .sig-label {
+            text-align: center;
+            font-size: 9pt;
+        }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="pass-container">
+        <div class="header">
+            <h3>VISITOR PASS</h3>
+            <p>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }}</p>
+        </div>
+
+        <div class="photo">
+            {% if visitor.photo_filename %}
+            <img src="{{ url_for('uploaded_file', filename=visitor.photo_filename, _external=True) }}"
+                alt="Visitor Photo">
+            {% else %}
+            <p>[ No Photo ]</p>
+            {% endif %}
+        </div>
+
+        <table class="details-table">
+            <tr>
+                <td class="label">Visitor UID:</td>
+                <td>{{ visitor.visitor_uid }}</td>
+            </tr>
+            <tr>
+                <td class="label">Name:</td>
+                <td>{{ visitor.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">Phone:</td>
+                <td>{{ visitor.phone }}</td>
+            </tr>
+            <tr>
+                <td class="label">Institution:</td>
+                <td>{{ visitor.institution or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Purpose:</td>
+                <td>{{ visitor.purpose }}</td>
+            </tr>
+            <tr>
+                <td class="label">Entry Time:</td>
+                <td>{{ visitor.entry_time.strftime('%d-%b-%Y %I:%M %p') }}</td>
+            </tr>
+            <tr>
+                <td class="label">Assigned To:</td>
+                <td>{{ visitor.assigned_staff.name if visitor.assigned_staff else 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Department:</td>
+                <td>{{ visitor.assigned_department.name if visitor.assigned_department else 'N/A' }}</td>
+            </tr>
+        </table>
+
+        <div class="barcode-section">
+            <img src="{{ url_for('generate_barcode', data=visitor.visitor_uid, _external=True) }}" alt="Barcode">
+        </div>
+        <div>
+            <div class="id-box-label">Visitor ID Number (To be filled by Security)</div>
+            <div class="id-box"></div>
+        </div>
+
+
+        <div class="signatures">
+            <div style="float: left; width: 30%;">
+                <div class="sig-line"></div>
+                <div class="sig-label">Security Staff</div>
+            </div>
+            <div style="float: right; width: 30%;">
+                <div class="sig-line"></div>
+                <div class="sig-label">Assigned Staff</div>
+            </div>
+            <div style="margin: 0 auto; width: 30%;">
+                <div class="sig-line"></div>
+                <div class="sig-label">Applicant</div>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+    </div>
+    <script>
+        window.onload = function () { window.print(); }
+    </script>
+</body>
+
+</html>

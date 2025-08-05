@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">{{ title }}</h1>
+    <a href="{{ url_for('roles.manage_roles') }}" class="btn btn-secondary">Back to Roles</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        {{ form.permissions.label(class="form-label") }}
+                        <div class="list-group">
+                            {% for subfield in form.permissions %}
+                                <label class="list-group-item">
+                                    {{ subfield(class="form-check-input me-1") }}
+                                    {{ subfield.label }}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

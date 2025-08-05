@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Visitor Dashboard</h1>
+    <a href="{{ url_for('visitors.entry') }}" class="btn btn-primary"><i class="bi bi-person-plus-fill"></i> New Visitor Entry</a>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('visitors.dashboard') }}">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label class="col-form-label">Filter by:</label>
+                </div>
+                <div class="col-auto">
+                    <select name="filter" class="form-select" id="filterType">
+                        <option value="today" {% if filter_type == 'today' %}selected{% endif %}>Today</option>
+                        <option value="range" {% if filter_type == 'range' %}selected{% endif %}>Date Range</option>
+                    </select>
+                </div>
+                <div class="col-auto" id="dateRangeFields" style="display: {% if filter_type == 'range' %}flex{% else %}none{% endif %};">
+                    <div class="input-group">
+                        <input type="date" name="start_date" class="form-control" value="{{ start_date or '' }}">
+                        <span class="input-group-text">to</span>
+                        <input type="date" name="end_date" class="form-control" value="{{ end_date or '' }}">
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">Apply Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <div class="row align-items-center">
+            <div class="col-md-6"><h5 class="mb-0">Visitor List</h5></div>
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by name, UID, phone, or purpose...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Name / UID</th>
+                        <th>Phone</th>
+                        <th>Purpose</th>
+                        <th>Entry Time</th>
+                        <th>Exit Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="visitorTable">
+                    {% for visitor in visitors %}
+                    <tr>
+                        <td>
+                            {% if visitor.photo_filename %}
+                                <img src="{{ url_for('uploaded_file', filename=visitor.photo_filename) }}" class="rounded" width="50" height="50" style="object-fit: cover;">
+                            {% else %}
+                                <i class="bi bi-person-circle fs-3 text-muted"></i>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ visitor.name }}</strong><br>
+                            <small class="text-muted">{{ visitor.visitor_uid }}</small>
+                        </td>
+                        <td>{{ visitor.phone }}</td>
+                        <td>{{ visitor.purpose|truncate(50) }}</td>
+                        <td>{{ visitor.entry_time.strftime('%d-%b-%Y %I:%M %p') }}</td>
+                        <td>
+                            {% if visitor.exit_time %}
+                                {{ visitor.exit_time.strftime('%d-%b-%Y %I:%M %p') }}
+                            {% else %}
+                                <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#markOutModal{{ visitor.id }}">Mark Out</button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- UPDATED: Edit button now links to the correct route -->
+                            <a href="{{ url_for('visitors.edit_visitor', visitor_id=visitor.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <button onclick="window.open('{{ url_for('visitors.visitor_pass', visitor_id=visitor.id) }}', 'Pass', 'width=400,height=600')" class="btn btn-sm btn-outline-info" title="Print Pass"><i class="bi bi-printer"></i></button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center">No visitors found for the selected period.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Mark Out Modals -->
+{% for visitor in visitors %}
+<div class="modal fade" id="markOutModal{{ visitor.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Exit</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to mark <strong>{{ visitor.name }}</strong> as exited at the current time?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('visitors.mark_out', visitor_id=visitor.id) }}" method="POST">
+          <input type="submit" class="btn btn-warning" value="Confirm Exit">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Date filter logic
+    document.getElementById('filterType').addEventListener('change', function() {
+        const dateRangeFields = document.getElementById('dateRangeFields');
+        if (this.value === 'range') {
+            dateRangeFields.style.display = 'flex';
+        } else {
+            dateRangeFields.style.display = 'none';
+        }
+    });
+
+    // Live search functionality
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('visitorTable');
+    const rows = tableBody.getElementsByTagName('tr');
+
+    searchInput.addEventListener('keyup', function(event) {
+        const filter = event.target.value.toLowerCase();
+        
+        for (let i = 0; i < rows.length; i++) {
+            const nameCell = rows[i].getElementsByTagName('td')[1];
+            const phoneCell = rows[i].getElementsByTagName('td')[2];
+            const purposeCell = rows[i].getElementsByTagName('td')[3];
+
+            if (nameCell && phoneCell && purposeCell) {
+                const nameText = nameCell.textContent || nameCell.innerText;
+                const phoneText = phoneCell.textContent || phoneCell.innerText;
+                const purposeText = purposeCell.textContent || purposeCell.innerText;
+
+                if (nameText.toLowerCase().indexOf(filter) > -1 ||
+                    phoneText.toLowerCase().indexOf(filter) > -1 ||
+                    purposeText.toLowerCase().indexOf(filter) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

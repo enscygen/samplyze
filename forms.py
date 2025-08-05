@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField, SelectMultipleField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField, SelectMultipleField, HiddenField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError
 from flask_wtf.file import FileAllowed
+from wtforms.widgets import ListWidget, CheckboxInput
 from models import User
 
 # ... (Existing helper function and forms remain the same) ...
@@ -18,8 +19,7 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Remember Me')
     submit = SubmitField('Login')
-    
-# NEW: Form for changing password when logged in
+
 class ChangePasswordForm(FlaskForm):
     old_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[DataRequired(), Length(min=6)])
@@ -30,7 +30,7 @@ class StaffForm(FlaskForm):
     name = StringField('Staff Name', validators=[DataRequired(), Length(min=2, max=120)])
     department = SelectField('Department', coerce=int, validators=[DataRequired()])
     staff_id = StringField('Staff ID / Username', validators=[DataRequired(), Length(min=4, max=80)])
-    role = SelectField('Role', choices=[('staff', 'Staff'), ('consultant', 'Consultant'), ('both', 'Both')], validators=[DataRequired()])
+    role_id = SelectField('Role', coerce=int, validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Add Staff')
@@ -43,7 +43,7 @@ class StaffForm(FlaskForm):
 class EditStaffForm(FlaskForm):
     name = StringField('Staff Name', validators=[DataRequired(), Length(min=2, max=120)])
     department = SelectField('Department', coerce=int, validators=[DataRequired()])
-    role = SelectField('Role', choices=[('staff', 'Staff'), ('consultant', 'Consultant'), ('both', 'Both')], validators=[DataRequired()])
+    role_id = SelectField('Role', coerce=int, validators=[DataRequired()])
     password = PasswordField('New Password (leave blank to keep current)', validators=[Optional(), Length(min=6)])
     confirm_password = PasswordField('Confirm New Password', validators=[EqualTo('password')])
     submit = SubmitField('Update Staff Member')
@@ -123,7 +123,6 @@ class DiagnosisForm(FlaskForm):
     result = TextAreaField('Result / Observations', validators=[Optional()])
     submit = SubmitField('Add Diagnosis')
 
-# --- NEW: Forms for File Sharing Feature ---
 class CreateFolderForm(FlaskForm):
     name = StringField('Folder Name', validators=[DataRequired(), Length(min=3, max=100)])
     submit = SubmitField('Create Folder')
@@ -133,7 +132,6 @@ class FolderSettingsForm(FlaskForm):
     description = TextAreaField('Description', validators=[Optional()], render_kw={'rows': 3})
     submit = SubmitField('Save Changes')
 
-# UPDATED: ComposeMailForm - removed static attachments field
 class ComposeMailForm(FlaskForm):
     recipients = SelectMultipleField('To', coerce=int, validators=[DataRequired()])
     subject = StringField('Subject', validators=[DataRequired(), Length(max=255)])
@@ -175,3 +173,28 @@ class RestoreForm(FlaskForm):
         FileAllowed(['zip'], 'Only .zip backup files are allowed!')
     ])
     submit = SubmitField('Restore from Backup')
+
+# UPDATED: Changed DataRequired to Optional for permissions
+class RoleForm(FlaskForm):
+    name = StringField('Role Name', validators=[DataRequired(), Length(min=3, max=80)])
+    permissions = SelectMultipleField('Permissions', coerce=int, validators=[Optional()], 
+                                      widget=ListWidget(prefix_label=False), 
+                                      option_widget=CheckboxInput())
+    submit = SubmitField('Save Role')
+
+class VisitorEntryForm(FlaskForm):
+    name = StringField('Visitor Name', validators=[DataRequired()])
+    phone = StringField('Phone Number', validators=[DataRequired()])
+    address = TextAreaField('Address', render_kw={'rows': 2})
+    id_type = StringField('ID Type (e.g., Aadhar, License)')
+    id_number = StringField('ID Number')
+    applicant_uid = StringField('Existing Applicant UID (Optional)')
+    institution = StringField('Institution / Organization')
+    purpose = TextAreaField('Purpose of Visit', validators=[DataRequired()], render_kw={'rows': 3})
+    
+    assigned_department_id = SelectField('Assign to Department', coerce=coerce_int_or_none, validators=[Optional()])
+    assigned_staff_id = SelectField('Assign to Staff', coerce=coerce_int_or_none, validators=[Optional()])
+    
+    photo_data = HiddenField()
+
+    submit = SubmitField('Save and Generate Pass')

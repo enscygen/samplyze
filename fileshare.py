@@ -5,8 +5,9 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-from models import db, Folder, File, FolderPermission, User
+from models import db, Folder, File, FolderPermission, User, PermissionNames
 from forms import CreateFolderForm, FolderSettingsForm
+from decorators import permission_required
 
 # Create a Blueprint
 fileshare_bp = Blueprint('fileshare', __name__, url_prefix='/fileshare', template_folder='templates')
@@ -21,6 +22,7 @@ def has_permission(folder, user):
 # --- Routes ---
 @fileshare_bp.route('/', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def dashboard():
     form = CreateFolderForm()
     if form.validate_on_submit():
@@ -51,6 +53,7 @@ def dashboard():
 
 @fileshare_bp.route('/folder/<int:folder_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def view_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if not has_permission(folder, current_user):
@@ -61,6 +64,7 @@ def view_folder(folder_id):
 
 @fileshare_bp.route('/folder/<int:folder_id>/upload', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def upload_file(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if not has_permission(folder, current_user):
@@ -97,6 +101,7 @@ def upload_file(folder_id):
 
 @fileshare_bp.route('/file/delete/<int:file_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def delete_file_from_folder(file_id):
     file = File.query.get_or_404(file_id)
     folder = file.folder
@@ -116,6 +121,7 @@ def delete_file_from_folder(file_id):
 
 @fileshare_bp.route('/file/download/<int:file_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def download_file(file_id):
     file = File.query.get_or_404(file_id)
     folder = file.folder
@@ -127,6 +133,7 @@ def download_file(file_id):
 
 @fileshare_bp.route('/folder/<int:folder_id>/settings', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def folder_settings(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if folder.owner_id != current_user.id and current_user.role != 'admin':
@@ -168,6 +175,7 @@ def folder_settings(folder_id):
 
 @fileshare_bp.route('/folder/delete/<int:folder_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def delete_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
     if folder.owner_id != current_user.id and current_user.role != 'admin':
@@ -186,6 +194,7 @@ def delete_folder(folder_id):
 
 @fileshare_bp.route('/file/view/<int:file_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_FILE_SHARING)
 def view_file(file_id):
     file = File.query.get_or_404(file_id)
     folder = file.folder

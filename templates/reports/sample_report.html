@@ -11,10 +11,27 @@
             color: #333;
         }
 
-        .header {
-            text-align: center;
+        .header-table {
+            width: 100%;
             padding-bottom: 10px;
             margin-bottom: 20px;
+        }
+
+        .header-table td {
+            vertical-align: middle;
+        }
+
+        .header-logo-name {
+            text-align: left;
+        }
+
+        td.header-details p {
+            margin: 0px;
+        }
+
+        .header-logo-name img {
+            max-height: 60px;
+            margin-bottom: 5px;
         }
 
         .header img {
@@ -22,14 +39,29 @@
             margin-bottom: 10px;
         }
 
-        .header h1 {
+        .header-logo-name h1 {
             margin: 0;
             font-size: 18pt;
         }
 
-        .header p {
-            margin: 0;
+        .header-barcode {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .header-barcode img {
+            max-height: 100px;
+        }
+
+        .header-details {
+            text-align: right;
+            font-size: 9pt;
             color: #666;
+            line-height: 1.2;
+        }
+
+        .header-details .description {
+            font-weight: bold;
         }
 
         .section {
@@ -56,12 +88,8 @@
             border-collapse: collapse;
         }
 
-        table.details-table td {
-            border: 1px solid #ddd;
-            padding: 5px;
-        }
-
         .details-table td {
+            padding: 6px 0;
             vertical-align: top;
         }
 
@@ -75,10 +103,9 @@
         }
 
         .diagnosis {
-            border: 1px solid #ddd;
-            padding: 5px;
+            border-bottom: 1px dashed #a5a5a5;
+            padding: 15px 0px;
             margin-bottom: 15px;
-            border-radius: 5px;
             page-break-inside: avoid;
         }
 
@@ -88,12 +115,30 @@
         }
 
         .image-gallery img {
-            width: 100%;
             max-height: 200px;
         }
 
-        .page-break {
-            page-break-before: always;
+        .section.image-gallery p {
+            margin-top: 0px;
+        }
+
+        .footer-signatures {
+            margin-top: 50px;
+            padding-top: 20px;
+        }
+
+        .signature-block {
+            display: inline-block;
+            width: 45%;
+            text-align: center;
+            border: 1px dashed #bababa;
+            padding: 5px;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #000;
+            height: 40px;
+            margin-bottom: 5px;
         }
 
         .sample-img-holder {
@@ -102,9 +147,23 @@
             gap: 5px;
         }
 
+        .final-footer {
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+            margin-top: 30px;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
+                /* For Chrome, Safari */
+                print-color-adjust: exact;
+                /* Standard */
             }
 
             .no-print {
@@ -115,13 +174,28 @@
 </head>
 
 <body>
-    <div class="header">
-        {% if lab_settings and lab_settings.logo_path %}
-        <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
-        {% endif %}
-        <h1>{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h1>
-        <p>{{ lab_settings.address if lab_settings else '' }}</p>
-    </div>
+    <!-- UPDATED: Header is now a three-part table -->
+    <table class="header-table">
+        <tr>
+            <td style="width: 35%;" class="header-logo-name">
+                {% if lab_settings and lab_settings.logo_path %}
+                <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
+                {% endif %}
+                <h1>{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h1>
+            </td>
+            <td style="width: 30%;" class="header-barcode">
+                <img src="{{ url_for('generate_barcode', data=sample.sample_uid, _external=True) }}" alt="Barcode">
+            </td>
+            <td style="width: 35%;" class="header-details">
+                {% if sample.allotted_department %}<p><strong>{{ sample.allotted_department.name }}</strong> </p>{%
+                endif %}
+                {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}
+                </p>{% endif %}
+                {% if lab_settings and lab_settings.address %}<p>{{ lab_settings.address }}</p>{% endif %}
+                {% if lab_settings and lab_settings.email %}<p>Email: {{ lab_settings.email }}</p>{% endif %}
+            </td>
+        </tr>
+    </table>
 
     <div class="section">
         <h2>Sample Summary</h2>
@@ -161,9 +235,9 @@
                         <td class="value">{{ sample.submission_date.strftime('%d-%b-%Y') }}</td>
                     </tr>
                     <tr>
-                        <td class="label">Collection Date</td>
-                        <td class="value">{{ sample.collection_date.strftime('%d-%b-%Y') if sample.collection_date else
-                            'N/A' }}</td>
+                        <td class="label">Assigned Department</td>
+                        <td class="value">{{ sample.allotted_department.name if sample.allotted_department else 'N/A' }}
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -192,13 +266,15 @@
         <div class="diagnosis">
             <h3>{{ diagnosis.title }} ({{ diagnosis.name }})</h3>
             <p><strong>Date:</strong> {{ diagnosis.created_at.strftime('%d-%b-%Y %I:%M %p') }}</p>
+
             <strong>Description / Method:</strong>
-            <div>{{ diagnosis.description | nl2br | safe or 'N/A' }}</div>
+            <div>{{ diagnosis.description | nl2br or 'N/A' }}</div>
             <br>
             <strong>Result / Observations:</strong>
-            <div>{{ diagnosis.result | nl2br | safe or 'N/A' }}</div>
+            <div>{{ diagnosis.result | nl2br }}</div>
 
             {% if diagnosis.attachments %}
+
             <strong>Attachments:</strong>
             <ul>
                 {% for attachment in diagnosis.attachments %}
@@ -211,6 +287,21 @@
         {% else %}
         <p>No diagnosis records found for this sample.</p>
         {% endif %}
+    </div>
+
+    <div class="footer-signatures">
+        <div class="signature-block" style="float: right;">
+            <strong>Result Verified & Digitally Signed by</strong><br>
+            {{ sample.assigned_staff.name if sample.assigned_staff else 'N/A' }}<br>
+            <small>{{ sample.allotted_department.name if sample.allotted_department else 'N/A' }}</small><br>
+            <small>Signed at: {{ generation_time.strftime('%d-%b-%Y %I:%M %p') }}</small>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="final-footer">
+        <p>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }} | Report Generated at {{
+            generation_time.strftime('%d-%b-%Y %I:%M %p') }}</p>
     </div>
 
     <script>

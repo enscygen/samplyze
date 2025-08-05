@@ -17,7 +17,8 @@ def admin_required(f):
     """Decorator to restrict access to admin users."""
     @login_required
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != 'admin':
+        # UPDATED: Changed to use the new is_admin property for checking roles
+        if not current_user.is_authenticated or not current_user.is_admin:
             abort(403)
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__

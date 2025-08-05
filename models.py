@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from datetime import datetime
 import pytz
-from sqlalchemy import event
+from sqlalchemy import event, Table
 from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
@@ -19,21 +19,67 @@ def get_ist_time():
     """Returns the current time in IST."""
     return datetime.now(pytz.timezone('Asia/Kolkata'))
 
-# --- Existing User and Lab Models ---
+# --- NEW: Models for Role-Based Permission System ---
+
+# Association table for the many-to-many relationship between roles and permissions
+role_permissions = Table('role_permissions', db.metadata,
+    db.Column('role_id', db.Integer, db.ForeignKey('role.id'), primary_key=True),
+    db.Column('permission_id', db.Integer, db.ForeignKey('permission.id'), primary_key=True)
+)
+
+# UPDATED: Renamed this class to avoid a name conflict
+class PermissionNames:
+    # These are the static permissions available in the system
+    CAN_ACCESS_APPLICANT_SERVICES = 'can_access_applicant_services'
+    CAN_ACCESS_SAMPLING_SERVICES = 'can_access_sampling_services'
+    CAN_ACCESS_MAIL = 'can_access_mail'
+    CAN_ACCESS_VISITOR_MANAGEMENT = 'can_access_visitor_management'
+    CAN_ACCESS_KNOWLEDGE_BASE = 'can_access_knowledge_base'
+    CAN_ACCESS_FILE_SHARING = 'can_access_file_sharing'
+    CAN_ACCESS_EQUIPMENT_LOGGING = 'can_access_equipment_logging'
+
+class Role(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+    permissions = db.relationship('Permission', secondary=role_permissions, backref=db.backref('roles', lazy='dynamic'))
+
+    def has_permission(self, perm):
+        return any(p.name == perm for p in self.permissions)
+
+class Permission(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(80), unique=True, nullable=False)
+
+
+# --- UPDATED: User Model ---
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False) # Staff ID
+    username = db.Column(db.String(80), unique=True, nullable=False)
     name = db.Column(db.String(120), nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='staff')
+    
+    # The 'role' text field is replaced with a foreign key to the Role table
+    role_id = db.Column(db.Integer, db.ForeignKey('role.id'))
+    role = db.relationship('Role', backref=db.backref('users', lazy=True))
+    
     department_id = db.Column(db.Integer, db.ForeignKey('department.id', ondelete='SET NULL'), nullable=True)
     department = db.relationship('Department', backref=db.backref('staff', lazy=True))
+
+    def can(self, perm):
+        """Check if the user has a specific permission."""
+        return self.role is not None and self.role.has_permission(perm)
+
+    @property
+    def is_admin(self):
+        """Property to check if the user has the admin role."""
+        return self.role is not None and self.role.name == 'Admin'
+
 
 class Department(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
 
-# ... (Applicant, ConsultancyNSC, SampleSC, Diagnosis, etc. models remain the same) ...
+# ... (All other models: Applicant, SampleSC, Mail, etc. remain the same) ...
 class Applicant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.String(10), unique=True, nullable=False)
@@ -155,7 +201,6 @@ class LabSettings(db.Model):
     email = db.Column(db.String(120))
     logo_path = db.Column(db.String(255), nullable=True)
 
-# --- NEW: Models for File Sharing Feature ---
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -184,7 +229,6 @@ class FolderPermission(db.Model):
 
     user = db.relationship('User', backref='folder_permissions')
 
-# --- NEW: Models for Mail Feature ---
 class Mail(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
@@ -210,31 +254,18 @@ class MailAttachment(db.Model):
     mail_id = db.Column(db.Integer, db.ForeignKey('mail.id'), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     original_filename = db.Column(db.String(255), nullable=False)
-    
-class KnowledgeBase(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    category = db.Column(db.String(50), nullable=False) # 'Diagnosis' or 'Remedy'
-    name = db.Column(db.String(150), nullable=False)    # e.g., "Fungal Test" or "Pest Infestation"
-    title = db.Column(db.String(150), nullable=True)     # Only for Diagnosis
-    description = db.Column(db.Text, nullable=True)    # For Diagnosis Method or Remedy Details
-    
-class AuditLog(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    action = db.Column(db.String(255), nullable=False)
-    timestamp = db.Column(db.DateTime, default=get_ist_time, nullable=False)
-    user = db.relationship('User')
-    
+
 class Equipment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_number = db.Column(db.String(100), unique=True, nullable=False)
     serial_number = db.Column(db.String(100), unique=True, nullable=True)
     name = db.Column(db.String(150), nullable=False)
-    location = db.Column(db.String(150))
     make_model = db.Column(db.String(200))
     purchase_date = db.Column(db.Date)
     last_calibration_date = db.Column(db.Date)
     multi_user = db.Column(db.Boolean, default=False)
+    location = db.Column(db.String(150))
+    
     logs = db.relationship('EquipmentLog', backref='equipment', cascade="all, delete-orphan")
 
 class EquipmentLog(db.Model):
@@ -244,4 +275,41 @@ class EquipmentLog(db.Model):
     start_time = db.Column(db.DateTime, default=get_ist_time, nullable=False)
     end_time = db.Column(db.DateTime, nullable=True)
     notes = db.Column(db.Text)
+
     user = db.relationship('User')
+
+class AuditLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    action = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=get_ist_time, nullable=False)
+    
+    user = db.relationship('User')
+
+class Visitor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    visitor_uid = db.Column(db.String(12), unique=True, nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    phone = db.Column(db.String(20), nullable=False)
+    address = db.Column(db.Text)
+    id_type = db.Column(db.String(100))
+    id_number = db.Column(db.String(100))
+    applicant_uid = db.Column(db.String(10), nullable=True) # Link to an existing applicant
+    institution = db.Column(db.String(200))
+    purpose = db.Column(db.Text)
+    entry_time = db.Column(db.DateTime, default=get_ist_time, nullable=False)
+    exit_time = db.Column(db.DateTime, nullable=True)
+    photo_filename = db.Column(db.String(255), nullable=True)
+    
+    assigned_department_id = db.Column(db.Integer, db.ForeignKey('department.id', ondelete='SET NULL'), nullable=True)
+    assigned_staff_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+
+    assigned_department = db.relationship('Department')
+    assigned_staff = db.relationship('User')
+
+class KnowledgeBase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category = db.Column(db.String(50), nullable=False) # 'Diagnosis' or 'Remedy'
+    name = db.Column(db.String(150), nullable=False)    # e.g., "Fungal Test" or "Pest Infestation"
+    title = db.Column(db.String(150), nullable=True)     # Only for Diagnosis
+    description = db.Column(db.Text, nullable=True)    # For Diagnosis Method or Remedy Details

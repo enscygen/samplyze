@@ -25,10 +25,11 @@
                         {{ form.department(class="form-select") }}
                     </div>
                     <div class="mb-3">
-                        {{ form.role.label(class="form-label") }}
-                        {{ form.role(class="form-select") }}
+                        <!-- UPDATED: Changed form.role to form.role_id -->
+                        {{ form.role_id.label(class="form-label", text="Role") }}
+                        {{ form.role_id(class="form-select") }}
                     </div>
-                    <hr>
+                    <br>
                     <p class="text-muted">Only fill in password fields if you want to change the password.</p>
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}

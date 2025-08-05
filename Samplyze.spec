@@ -17,7 +17,7 @@ a = Analysis(
         ('templates', 'templates'),
         ('static', 'static'),
         ('instance', 'instance'),
-        ('shared_files', 'shared_files')
+        ('appfiles', 'appfiles')
     ],
     hiddenimports=['sqlalchemy.sql.default_comparator'], # Helps with SQLAlchemy compatibility
     hookspath=[],

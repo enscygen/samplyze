@@ -1,5 +1,6 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_from_directory, make_response, Response
+import sys
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, send_from_directory, make_response, Response, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,31 +10,35 @@ import pytz
 from markupsafe import Markup, escape
 from jinja2.filters import pass_eval_context
 import socket
-import sys
 import csv
 import io
+from io import BytesIO
+import barcode
+from barcode.writer import ImageWriter
 
 # Import forms, models, and utility functions from other files
-from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm
-from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient, AuditLog
+from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm, RoleForm
+from models import db, User, Department, Applicant, ConsultancyNSC, NSCImage, SampleSC, SampleImage, Diagnosis, LabSettings, DiagnosisAttachment, MailRecipient, AuditLog, Role, Permission, KnowledgeBase, PermissionNames, Visitor
 from utils import generate_uid, generate_sample_uid
-# Import the blueprint
+# Import the blueprints
 from fileshare import fileshare_bp
 from mail import mail_bp
 from knowledge_base import kb_bp
 from migrate_data import run_migration
 from equipment import equipment_bp
 from backup_restore import backup_bp
+from roles import roles_bp
+from visitors import visitors_bp
+# NEW: Import the new decorator
+from decorators import permission_required
 
 # --- PyInstaller Path Correction ---
 if getattr(sys, 'frozen', False):
-    # If the application is run as a bundle (e.g., by PyInstaller)
     basedir = sys._MEIPASS
     template_folder = os.path.join(basedir, 'templates')
     static_folder = os.path.join(basedir, 'static')
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
-    # If running normally (e.g., with 'python run.py')
     basedir = os.path.abspath(os.path.dirname(__file__))
     app = Flask(__name__)
  
@@ -59,20 +64,21 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Register the blueprint
+# Register the blueprints
 app.register_blueprint(fileshare_bp)
 app.register_blueprint(mail_bp)
 app.register_blueprint(kb_bp)
 app.register_blueprint(equipment_bp)
 app.register_blueprint(backup_bp)
+app.register_blueprint(roles_bp)
+app.register_blueprint(visitors_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
 def nl2br_filter(s):
     if s is None:
         return ''
-    # Do NOT escape, just replace \n with <br>
-    return Markup(s.replace('\n', '<br>\n'))
+    return Markup(escape(s).replace('\n', '<br>\n'))
 
 
 # --- User Loader for Flask-Login ---
@@ -85,12 +91,11 @@ def get_ist_time():
     """Returns the current time in IST."""
     return datetime.now(pytz.timezone('Asia/Kolkata'))
 
-# UPDATED: The admin_required decorator function is now correctly defined here
 def admin_required(f):
     """Decorator to restrict access to admin users."""
     @login_required
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.role != 'admin':
+        if not current_user.is_authenticated or not current_user.is_admin:
             abort(403)
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
@@ -113,25 +118,37 @@ def log_action(action, user_id=None):
     
     log_entry = AuditLog(user_id=user_id, action=action)
     db.session.add(log_entry)
-    # We commit immediately to ensure logs are saved even if the main transaction fails
     db.session.commit()
      
-# --- Add this new route to your app.py file ---
 @app.route('/about')
 @login_required
 def about():
     return render_template('about.html', title='About Samplyze')
 
+@app.route('/barcode/<data>')
+def generate_barcode(data):
+    try:
+        code128 = barcode.get_barcode_class('code128')
+        writer = ImageWriter()
+        barcode_image = code128(data, writer=writer)
+        
+        buffer = BytesIO()
+        barcode_image.write(buffer)
+        buffer.seek(0)
+        
+        return send_file(buffer, mimetype='image/png')
+    except Exception as e:
+        print(f"Error generating barcode: {e}")
+        return abort(500)
+
 @app.route('/admin/audit-log')
 @admin_required
 def audit_log():
-    # Get filter parameters from the URL
     search_query = request.args.get('q', '')
     
     query = AuditLog.query
 
     if search_query:
-        # Filter by user name or action description
         query = query.join(User).filter(
             db.or_(
                 User.name.ilike(f'%{search_query}%'),
@@ -142,7 +159,6 @@ def audit_log():
     logs = query.order_by(AuditLog.timestamp.desc()).all()
     return render_template('admin/audit_log.html', title='Audit Log', logs=logs, search_query=search_query)
 
-# Add this new route function after the audit_log function
 @app.route('/admin/audit-log/export')
 @admin_required
 def audit_log_export():
@@ -160,14 +176,11 @@ def audit_log_export():
         
     logs = query.order_by(AuditLog.timestamp.desc()).all()
 
-    # Generate CSV in memory
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Write headers
     writer.writerow(['Timestamp (IST)', 'User', 'Action'])
     
-    # Write data
     for log in logs:
         writer.writerow([
             log.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
@@ -186,18 +199,13 @@ def audit_log_export():
 @app.route('/network-info')
 @login_required
 def network_info():
-    """Displays network information for LAN access."""
     try:
-        # Get server's local IP address
         hostname = socket.gethostname()
         server_ip = socket.gethostbyname(hostname)
     except Exception:
-        server_ip = '127.0.0.1' # Fallback
+        server_ip = '127.0.0.1'
 
-    # Get client's IP address
     client_ip = request.remote_addr
-
-    # The port is hardcoded in run.py, so we use it here
     lan_url = f"http://{server_ip}:8000"
 
     return render_template('staff/network_info.html', 
@@ -208,12 +216,34 @@ def network_info():
 
 
 # --- Main Routes ---
+# Replace the existing index function in app.py with this one
+
 @app.route('/')
 def index():
     if current_user.is_authenticated:
-        if current_user.role == 'admin':
+        if current_user.is_admin:
             return redirect(url_for('admin_dashboard'))
-        return redirect(url_for('dashboard'))
+        
+        # --- NEW: Smart Redirect based on Permissions ---
+        # This checks permissions in a specific order and redirects to the first page the user can access.
+        permission_map = [
+            (PermissionNames.CAN_ACCESS_APPLICANT_SERVICES, 'dashboard'),
+            (PermissionNames.CAN_ACCESS_SAMPLING_SERVICES, 'all_samples'),
+            (PermissionNames.CAN_ACCESS_VISITOR_MANAGEMENT, 'visitors.dashboard'),
+            (PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING, 'equipment.dashboard'),
+            (PermissionNames.CAN_ACCESS_FILE_SHARING, 'fileshare.dashboard'),
+            (PermissionNames.CAN_ACCESS_MAIL, 'mail.inbox'),
+            (PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE, 'kb.dashboard')
+        ]
+
+        for permission, endpoint in permission_map:
+            if current_user.can(permission):
+                return redirect(url_for(endpoint))
+        
+        # If the user has no permissions at all, log them out with a message.
+        flash("Your role does not have any permissions assigned. Please contact an administrator.", "warning")
+        return redirect(url_for('logout'))
+
     return redirect(url_for('login'))
 
 # --- Authentication Routes ---
@@ -246,7 +276,7 @@ def logout():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    staff_count = User.query.filter(User.role != 'admin').count()
+    staff_count = User.query.filter(User.role.has(name='Admin') == False).count()
     applicant_count = Applicant.query.count()
     sample_count = SampleSC.query.count()
     return render_template('admin/dashboard.html', title='Admin Dashboard', staff_count=staff_count, applicant_count=applicant_count, sample_count=sample_count)
@@ -256,15 +286,17 @@ def admin_dashboard():
 def manage_staff():
     form = StaffForm()
     form.department.choices = [(d.id, d.name) for d in Department.query.order_by('name').all()]
+    form.role_id.choices = [(r.id, r.name) for r in Role.query.order_by('name').all()]
+    
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data, method='pbkdf2:sha256')
-        new_staff = User(username=form.staff_id.data, name=form.name.data, password_hash=hashed_password, role=form.role.data, department_id=form.department.data)
+        new_staff = User(username=form.staff_id.data, name=form.name.data, password_hash=hashed_password, role_id=form.role_id.data, department_id=form.department.data)
         db.session.add(new_staff)
         db.session.commit()
         log_action(f"Admin created new staff member '{new_staff.name}' (Username: {new_staff.username}).")
         flash('New staff member has been added.', 'success')
         return redirect(url_for('manage_staff'))
-    staff_list = User.query.filter(User.role != 'admin').all()
+    staff_list = User.query.filter(User.role.has(name='Admin') == False).all()
     return render_template('admin/manage_staff.html', title='Manage Staff', form=form, staff_list=staff_list)
 
 @app.route('/admin/staff/edit/<int:staff_id>', methods=['GET', 'POST'])
@@ -273,10 +305,12 @@ def edit_staff(staff_id):
     staff = User.query.get_or_404(staff_id)
     form = EditStaffForm(obj=staff)
     form.department.choices = [(d.id, d.name) for d in Department.query.order_by('name').all()]
+    form.role_id.choices = [(r.id, r.name) for r in Role.query.order_by('name').all()]
+    
     if form.validate_on_submit():
         staff.name = form.name.data
         staff.department_id = form.department.data
-        staff.role = form.role.data
+        staff.role_id = form.role_id.data
         if form.password.data:
             staff.password_hash = generate_password_hash(form.password.data, method='pbkdf2:sha256')
         db.session.commit()
@@ -285,13 +319,15 @@ def edit_staff(staff_id):
         return redirect(url_for('manage_staff'))
     elif request.method == 'GET':
         form.department.data = staff.department_id
+        form.role_id.data = staff.role_id
+
     return render_template('admin/edit_staff.html', title='Edit Staff', form=form, staff=staff)
 
 @app.route('/admin/staff/delete/<int:staff_id>', methods=['POST'])
 @admin_required
 def delete_staff(staff_id):
     staff_to_delete = User.query.get_or_404(staff_id)
-    if staff_to_delete.role == 'admin':
+    if staff_to_delete.is_admin:
         flash('Admins cannot be deleted from this interface.', 'danger')
         return redirect(url_for('manage_staff'))
     db.session.delete(staff_to_delete)
@@ -357,14 +393,11 @@ def lab_settings():
         return redirect(url_for('lab_settings'))
     return render_template('admin/settings.html', title='Lab Settings', form=form, settings=settings)
 
-# Add this new route inside the "Admin Routes" section of app.py
-
 @app.route('/admin/change-password', methods=['GET', 'POST'])
 @admin_required
 def admin_change_password():
     form = ChangePasswordForm()
     if form.validate_on_submit():
-        # Check if the old password is correct
         if check_password_hash(current_user.password_hash, form.old_password.data):
             current_user.password_hash = generate_password_hash(form.new_password.data, method='pbkdf2:sha256')
             db.session.commit()
@@ -374,16 +407,44 @@ def admin_change_password():
             flash('Incorrect current password.', 'danger')
     return render_template('admin/change_password.html', title='Change Password', form=form)
 
+@app.route('/admin/migrate', methods=['GET', 'POST'])
+@admin_required
+def migrate_database():
+    form = DBMigrationForm()
+    if form.validate_on_submit():
+        old_db_file = form.db_file.data
+        
+        temp_path = os.path.join('instance', 'temp_old_db.db')
+        old_db_file.save(temp_path)
+        
+        current_db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+
+        success, message = run_migration(new_db_path=current_db_path, old_db_path=temp_path)
+
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+        
+        if success:
+            flash(message, 'success')
+        else:
+            flash(message, 'danger')
+
+        return redirect(url_for('admin_dashboard'))
+
+    return render_template('admin/migrate.html', title='Migrate Database', form=form)
+
+
 # --- Staff/Consultant Routes ---
 @app.route('/dashboard')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_APPLICANT_SERVICES)
 def dashboard():
     applicants = Applicant.query.order_by(Applicant.created_at.desc()).all()
     return render_template('staff/dashboard.html', title='OA Dashboard', applicants=applicants)
 
-
 @app.route('/samples')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def all_samples():
     assigned_to_me = request.args.get('assigned_to_me', 'false').lower() == 'true'
     
@@ -396,9 +457,9 @@ def all_samples():
     
     return render_template('staff/all_samples.html', title='All Samples', samples=samples, assigned_to_me=assigned_to_me)
 
-
 @app.route('/applicant/add', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_APPLICANT_SERVICES)
 def add_applicant():
     form = ApplicantForm()
     if form.validate_on_submit():
@@ -412,6 +473,7 @@ def add_applicant():
 
 @app.route('/applicant/edit/<uid>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_APPLICANT_SERVICES)
 def edit_applicant(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     form = ApplicantForm(obj=applicant)
@@ -426,12 +488,14 @@ def edit_applicant(uid):
 
 @app.route('/applicant/view/<uid>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_APPLICANT_SERVICES)
 def view_applicant(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     return render_template('staff/view_applicant.html', title=f'Applicant: {applicant.name}', applicant=applicant)
 
 @app.route('/applicant/delete/<uid>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_APPLICANT_SERVICES)
 def delete_applicant(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     
@@ -453,6 +517,7 @@ def delete_applicant(uid):
 
 @app.route('/applicant/<uid>/add_nsc', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def add_nsc(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     form = NSCForm()
@@ -492,12 +557,14 @@ def add_nsc(uid):
 
 @app.route('/nsc/view/<int:nsc_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def view_nsc(nsc_id):
     nsc = ConsultancyNSC.query.get_or_404(nsc_id)
     return render_template('staff/view_nsc.html', title='View NSC', nsc=nsc)
 
 @app.route('/nsc/edit/<int:nsc_id>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def edit_nsc(nsc_id):
     nsc = ConsultancyNSC.query.get_or_404(nsc_id)
     form = NSCForm(obj=nsc, consultancy_datetime=datetime.combine(nsc.date, nsc.time))
@@ -541,6 +608,7 @@ def edit_nsc(nsc_id):
 
 @app.route('/nsc/delete/<int:nsc_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def delete_nsc(nsc_id):
     nsc = ConsultancyNSC.query.get_or_404(nsc_id)
     applicant_uid = nsc.applicant.uid
@@ -554,16 +622,15 @@ def delete_nsc(nsc_id):
     flash('NSC record and its images have been deleted.', 'success')
     return redirect(url_for('view_applicant', uid=applicant_uid))
 
-# Replace the existing add_sample function in app.py with this one
-
 @app.route('/applicant/<uid>/add_sample', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def add_sample(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     form = SampleForm()
     form.allotted_department_id.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
-    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
-    
+    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.has(name='Admin') == False).order_by('name').all()]
+
     if request.method == 'POST':
         form.current_status.data = 'Submitted'
 
@@ -584,7 +651,6 @@ def add_sample(uid):
             hazard_control=form.hazard_control.data,
             dispose_before=form.dispose_before.data, 
             remarks=form.remarks.data
-            # The current_status is now handled by the database default
         )
         db.session.add(new_sample)
         db.session.flush() 
@@ -611,6 +677,7 @@ def add_sample(uid):
 
 @app.route('/sample/<sample_uid>/add_diagnosis', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def add_diagnosis(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     form = DiagnosisForm()
@@ -648,6 +715,7 @@ def add_diagnosis(sample_uid):
 
 @app.route('/diagnosis/edit/<int:diagnosis_id>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def edit_diagnosis(diagnosis_id):
     diagnosis = Diagnosis.query.get_or_404(diagnosis_id)
     sample = diagnosis.sample
@@ -687,6 +755,7 @@ def edit_diagnosis(diagnosis_id):
 
 @app.route('/diagnosis/delete/<int:diagnosis_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def delete_diagnosis(diagnosis_id):
     diagnosis = Diagnosis.query.get_or_404(diagnosis_id)
     sample_uid = diagnosis.sample.sample_uid
@@ -703,29 +772,16 @@ def delete_diagnosis(diagnosis_id):
 
 @app.route('/sample/edit/<sample_uid>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def edit_sample(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     form = SampleForm(obj=sample)
     
     form.allotted_department_id.choices = [('', '--- Select Department ---')] + [(str(d.id), d.name) for d in Department.query.order_by('name').all()]
-    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.in_(['consultant', 'both', 'staff'])).order_by('name').all()]
+    form.assigned_staff_id.choices = [('', '--- Select Staff ---')] + [(str(u.id), u.name) for u in User.query.filter(User.role.has(name='Admin') == False).order_by('name').all()]
 
     if form.validate_on_submit():
-        # This block for saving the data is correct
-        sample.sample_name = form.sample_name.data
-        sample.sample_type = form.sample_type.data
-        sample.collection_date = form.collection_date.data
-        sample.primary_observations = form.primary_observations.data
-        sample.current_status = form.current_status.data
-        sample.recommended_storage = form.recommended_storage.data
-        sample.storage_location = form.storage_location.data
-        sample.diagnostics_needed = form.diagnostics_needed.data
-        sample.quality_check_data = form.quality_check_data.data
-        sample.hazard_control = form.hazard_control.data
-        sample.dispose_before = form.dispose_before.data
-        sample.remarks = form.remarks.data
-        sample.allotted_department_id = form.allotted_department_id.data
-        sample.assigned_staff_id = form.assigned_staff_id.data
+        form.populate_obj(sample)
         
         images_to_delete = request.form.getlist('delete_images')
         for image_id in images_to_delete:
@@ -754,7 +810,6 @@ def edit_sample(sample_uid):
         return redirect(url_for('view_sample', sample_uid=sample.sample_uid))
     
     elif request.method == 'GET':
-        # THIS IS THE CORRECTED PART: We now pass the integer directly.
         form.allotted_department_id.data = sample.allotted_department_id
         form.assigned_staff_id.data = sample.assigned_staff_id
 
@@ -762,6 +817,7 @@ def edit_sample(sample_uid):
 
 @app.route('/sample/delete/<sample_uid>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def delete_sample(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     applicant_uid = sample.applicant.uid
@@ -781,6 +837,7 @@ def delete_sample(sample_uid):
 
 @app.route('/sample/view/<sample_uid>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def view_sample(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
     return render_template('staff/view_sample.html', title=f'Sample: {sample.sample_uid}', sample=sample)
@@ -800,74 +857,87 @@ def applicant_report(uid):
 @login_required
 def sample_report(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
-    return render_template('reports/sample_report.html', sample=sample)
+    return render_template('reports/sample_report.html', sample=sample, generation_time=get_ist_time())
 
-@app.route('/nsc/report/<int:nsc_id>')
-@login_required
-def nsc_report(nsc_id):
-    nsc = ConsultancyNSC.query.get_or_404(nsc_id)
-    return render_template('reports/nsc_report.html', nsc=nsc)
 
-@app.route('/admin/migrate', methods=['GET', 'POST'])
-@admin_required
-def migrate_database():
-    form = DBMigrationForm()
-    if form.validate_on_submit():
-        old_db_file = form.db_file.data
-        
-        # Save the uploaded file temporarily
-        temp_path = os.path.join('instance', 'temp_old_db.db')
-        old_db_file.save(temp_path)
-        
-        # Get the path to the current database
-        current_db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
-
-        # Call the migration function from the separate script
-        success, message = run_migration(new_db_path=current_db_path, old_db_path=temp_path)
-
-        # Clean up the temporary file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-        
-        if success:
-            flash(message, 'success')
-        else:
-            flash(message, 'danger')
-
-        return redirect(url_for('admin_dashboard'))
-
-    return render_template('admin/migrate.html', title='Migrate Database', form=form)
+# --- Context Processors ---
+# Replace the existing context_processor function in app.py with this one
 
 @app.context_processor
-def inject_unread_mail_count():
+def inject_global_variables():
+    settings = LabSettings.query.first()
+    unread_mail_count = 0
     if current_user.is_authenticated:
-        count = MailRecipient.query.filter_by(
+        unread_mail_count = MailRecipient.query.filter_by(
             recipient_id=current_user.id, 
             is_read=False, 
             is_deleted=False
         ).count()
-        return dict(unread_mail_count=count)
-    return dict(unread_mail_count=0)
-
-
-# --- Context Processors ---
-@app.context_processor
-def inject_global_variables():
-    settings = LabSettings.query.first()
     return dict(
         lab_settings=settings,
-        current_year=datetime.now(timezone.utc).year
+        current_year=datetime.now(timezone.utc).year,
+        unread_mail_count=unread_mail_count,
+        Permission=PermissionNames # Make the Permission class available in all templates
     )
+
+# Add this new error handler function anywhere in app.py
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html'), 403
 
 # --- Create Database and Default Admin ---
 with app.app_context():
     db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        hashed_password = generate_password_hash('password', method='pbkdf2:sha256')
-        admin_user = User(username='admin', name='Administrator', password_hash=hashed_password, role='admin')
-        db.session.add(admin_user)
+    
+    # This function will now robustly seed the database
+    def seed_initial_data():
+        # --- Seed Permissions ---
+        print("Checking and seeding permissions...")
+        all_perm_names = [vars(PermissionNames)[p] for p in vars(PermissionNames) if p.startswith('CAN_')]
+        all_perms = []
+        for name in all_perm_names:
+            perm = Permission.query.filter_by(name=name).first()
+            if not perm:
+                perm = Permission(name=name)
+                db.session.add(perm)
+            all_perms.append(perm)
         db.session.commit()
-    if not LabSettings.query.first():
-        default_settings = LabSettings(lab_name="My Laboratory", description="Default Lab Description", address="123 Lab Street", contact_number="9998887776", email="contact@lab.com")
-        db.session.add(default_settings)
+
+        # --- Seed Roles ---
+        print("Checking and seeding roles...")
+        # Create Admin Role if it doesn't exist
+        admin_role = Role.query.filter_by(name='Admin').first()
+        if not admin_role:
+            admin_role = Role(name='Admin')
+            db.session.add(admin_role)
+        admin_role.permissions = all_perms # Ensure admin has all permissions
+        
+        # Create Staff Role if it doesn't exist
+        staff_role = Role.query.filter_by(name='Staff').first()
+        if not staff_role:
+            staff_role = Role(name='Staff')
+            db.session.add(staff_role)
+        # Ensure staff has all permissions except visitor management
+        staff_perms = [p for p in all_perms if p.name != PermissionNames.CAN_ACCESS_VISITOR_MANAGEMENT]
+        staff_role.permissions = staff_perms
+        
         db.session.commit()
+
+        # --- Seed Default User and Settings ---
+        if not User.query.filter_by(username='admin').first():
+            print("Creating default admin user...")
+            admin_role = Role.query.filter_by(name='Admin').first()
+            hashed_password = generate_password_hash('password', method='pbkdf2:sha256')
+            admin_user = User(username='admin', name='Administrator', password_hash=hashed_password, role=admin_role)
+            db.session.add(admin_user)
+            db.session.commit()
+
+        if not LabSettings.query.first():
+            print("Creating default lab settings...")
+            default_settings = LabSettings(lab_name="My Laboratory", description="Default Lab Description", address="123 Lab Street", contact_number="9998887776", email="contact@lab.com")
+            db.session.add(default_settings)
+            db.session.commit()
+
+    # Run the seeding function
+    seed_initial_data()

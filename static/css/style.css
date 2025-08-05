@@ -160,6 +160,35 @@ button.add-diagnosis-from-kb-btn {
     padding: 1.25rem;
 }
 
+.barcode-section img {
+    width: 100%;
+    max-width: 300px;
+}
+
+tbody#sampleTable td {
+    max-width: 200px;
+    /* Adjust to your desired max width */
+    overflow: auto;
+    /* Enables scroll if content overflows */
+    white-space: nowrap;
+    /* Prevents wrapping to new line */
+    text-overflow: ellipsis;
+    /* Optional: shows '...' for overflow */
+    scrollbar-width: none;
+    /* Firefox: hides scrollbar */
+}
+
+tbody#sampleTable td::-webkit-scrollbar {
+    display: none;
+    /* Chrome/Safari: hides scrollbar */
+}
+
+
+ul.dropdown-menu.dropdown-menu-end.show {
+    font-size: 0.85rem;
+    min-width: 200px;
+}
+
 .sample-overview-counter {
     font-size: 0.8rem;
     font-weight: 600;

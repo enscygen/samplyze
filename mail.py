@@ -4,8 +4,9 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from datetime import datetime
 
-from models import db, Mail, MailRecipient, MailAttachment, User
+from models import db, Mail, MailRecipient, MailAttachment, User, PermissionNames
 from forms import ComposeMailForm
+from decorators import permission_required
 
 # Create a Blueprint
 mail_bp = Blueprint('mail', __name__, url_prefix='/mail', template_folder='templates')
@@ -25,6 +26,7 @@ def delete_mail_file(filename):
 # --- Routes ---
 @mail_bp.route('/')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def inbox():
     received_mails = MailRecipient.query.join(Mail).filter(
         MailRecipient.recipient_id == current_user.id, 
@@ -35,12 +37,14 @@ def inbox():
 
 @mail_bp.route('/sent')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def sent():
     sent_mails = Mail.query.filter_by(sender_id=current_user.id).order_by(Mail.sent_at.desc()).all()
     return render_template('mail/sent.html', title='Sent Mail', mails=sent_mails)
 
 @mail_bp.route('/compose', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def compose():
     form = ComposeMailForm()
     form.recipients.choices = [(u.id, u.name) for u in User.query.filter(User.id != current_user.id).order_by(User.name).all()]
@@ -82,6 +86,7 @@ def compose():
 
 @mail_bp.route('/view/<int:recipient_mail_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def view_mail(recipient_mail_id):
     recipient_mail = MailRecipient.query.get_or_404(recipient_mail_id)
     
@@ -97,6 +102,7 @@ def view_mail(recipient_mail_id):
 
 @mail_bp.route('/view_sent/<int:mail_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def view_sent_mail(mail_id):
     mail = Mail.query.get_or_404(mail_id)
     if mail.sender_id != current_user.id:
@@ -105,6 +111,7 @@ def view_sent_mail(mail_id):
 
 @mail_bp.route('/delete/<int:recipient_mail_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def delete_mail(recipient_mail_id):
     recipient_mail = MailRecipient.query.get_or_404(recipient_mail_id)
     if recipient_mail.recipient_id != current_user.id:
@@ -118,6 +125,7 @@ def delete_mail(recipient_mail_id):
 # NEW: Route to permanently delete a sent mail
 @mail_bp.route('/delete_sent/<int:mail_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def delete_sent_mail(mail_id):
     mail = Mail.query.get_or_404(mail_id)
     if mail.sender_id != current_user.id:
@@ -137,6 +145,7 @@ def delete_sent_mail(mail_id):
 
 @mail_bp.route('/attachment/<int:attachment_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def download_attachment(attachment_id):
     attachment = MailAttachment.query.get_or_404(attachment_id)
     mail = attachment.mail
@@ -149,6 +158,7 @@ def download_attachment(attachment_id):
 
 @mail_bp.route('/attachment/view/<int:attachment_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_MAIL)
 def view_attachment(attachment_id):
     attachment = MailAttachment.query.get_or_404(attachment_id)
     mail = attachment.mail

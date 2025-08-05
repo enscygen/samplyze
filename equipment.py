@@ -6,14 +6,16 @@ from flask_login import login_required, current_user
 from datetime import datetime
 import pytz
 
-from models import db, Equipment, EquipmentLog, User
+from models import db, Equipment, EquipmentLog, User, PermissionNames
 from forms import AddEquipmentForm, LogUsageForm
+from decorators import permission_required
 
 # Create a Blueprint
 equipment_bp = Blueprint('equipment', __name__, url_prefix='/equipment', template_folder='templates')
 
 @equipment_bp.route('/')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def dashboard():
     form = AddEquipmentForm()
     all_equipment = Equipment.query.order_by(Equipment.name).all()
@@ -28,6 +30,7 @@ def dashboard():
 
 @equipment_bp.route('/add', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def add_equipment():
     form = AddEquipmentForm()
     if form.validate_on_submit():
@@ -50,6 +53,7 @@ def add_equipment():
 
 @equipment_bp.route('/edit/<int:equipment_id>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def edit_equipment(equipment_id):
     equipment = Equipment.query.get_or_404(equipment_id)
     form = AddEquipmentForm(obj=equipment)
@@ -62,6 +66,7 @@ def edit_equipment(equipment_id):
 
 @equipment_bp.route('/delete/<int:equipment_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def delete_equipment(equipment_id):
     equipment = Equipment.query.get_or_404(equipment_id)
     db.session.delete(equipment)
@@ -71,6 +76,7 @@ def delete_equipment(equipment_id):
 
 @equipment_bp.route('/log/start/<int:equipment_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def start_log(equipment_id):
     equipment = Equipment.query.get_or_404(equipment_id)
     notes = request.form.get('notes', '')
@@ -93,6 +99,7 @@ def start_log(equipment_id):
 
 @equipment_bp.route('/log/end/<int:log_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def end_log(log_id):
     log = EquipmentLog.query.get_or_404(log_id)
     if log.user_id != current_user.id:
@@ -105,14 +112,15 @@ def end_log(log_id):
 
 @equipment_bp.route('/logs/<int:equipment_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def view_logs(equipment_id):
     equipment = Equipment.query.get_or_404(equipment_id)
     logs = EquipmentLog.query.filter_by(equipment_id=equipment.id).order_by(EquipmentLog.start_time.desc()).all()
     return render_template('equipment/view_logs.html', title=f"Logs for {equipment.name}", equipment=equipment, logs=logs)
 
-# NEW: Route to export a specific equipment's log as CSV
 @equipment_bp.route('/logs/export/<int:equipment_id>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def export_logs_csv(equipment_id):
     equipment = Equipment.query.get_or_404(equipment_id)
     logs = EquipmentLog.query.filter_by(equipment_id=equipment.id).order_by(EquipmentLog.start_time.desc()).all()
@@ -143,6 +151,7 @@ def export_logs_csv(equipment_id):
 
 @equipment_bp.route('/import', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def import_csv():
     if 'file' not in request.files:
         flash('No file part in the request.', 'danger')
@@ -190,6 +199,7 @@ def import_csv():
 
 @equipment_bp.route('/export')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_EQUIPMENT_LOGGING)
 def export_csv():
     output = io.StringIO()
     writer = csv.writer(output)

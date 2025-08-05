@@ -4,14 +4,16 @@ import io
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_login import login_required, current_user
 
-from models import db, KnowledgeBase
+from models import db, KnowledgeBase, PermissionNames
 from forms import KnowledgeBaseForm
+from decorators import permission_required
 
 # Create a Blueprint
 kb_bp = Blueprint('kb', __name__, url_prefix='/kb', template_folder='templates')
 
 @kb_bp.route('/')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def dashboard():
     remedies = KnowledgeBase.query.filter_by(category='Remedy').order_by(KnowledgeBase.name).all()
     diagnoses = KnowledgeBase.query.filter_by(category='Diagnosis').order_by(KnowledgeBase.name).all()
@@ -19,6 +21,7 @@ def dashboard():
 
 @kb_bp.route('/add', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def add_entry():
     form = KnowledgeBaseForm()
     if form.validate_on_submit():
@@ -36,6 +39,7 @@ def add_entry():
 
 @kb_bp.route('/edit/<int:entry_id>', methods=['GET', 'POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def edit_entry(entry_id):
     entry = KnowledgeBase.query.get_or_404(entry_id)
     form = KnowledgeBaseForm(obj=entry)
@@ -51,6 +55,7 @@ def edit_entry(entry_id):
 
 @kb_bp.route('/delete/<int:entry_id>', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def delete_entry(entry_id):
     entry = KnowledgeBase.query.get_or_404(entry_id)
     db.session.delete(entry)
@@ -60,6 +65,7 @@ def delete_entry(entry_id):
 
 @kb_bp.route('/import', methods=['POST'])
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def import_csv():
     category = request.form.get('category')
     if 'file' not in request.files:
@@ -112,6 +118,7 @@ def import_csv():
 
 @kb_bp.route('/export/<category>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def export_csv(category):
     output = io.StringIO()
     writer = csv.writer(output)
@@ -139,6 +146,7 @@ def export_csv(category):
 # API endpoint for live search
 @kb_bp.route('/api/search/<category>')
 @login_required
+@permission_required(PermissionNames.CAN_ACCESS_KNOWLEDGE_BASE)
 def search_kb(category):
     entries = KnowledgeBase.query.filter_by(category=category).all()
     return jsonify([{
