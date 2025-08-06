@@ -57,6 +57,9 @@ i.bi.bi-three-dots-vertical {
     vertical-align: top;
 }
 
+.flex-with-align-right span {
+    text-align: right
+}
 
 .rich-text-field strong {
     font-weight: 600;

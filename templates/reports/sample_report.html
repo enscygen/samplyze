@@ -103,7 +103,7 @@
         }
 
         .diagnosis {
-            border-bottom: 1px dashed #a5a5a5;
+            border-bottom: 1px dashed #bababa;
             padding: 15px 0px;
             margin-bottom: 15px;
             page-break-inside: avoid;
@@ -193,6 +193,27 @@
             .no-print {
                 display: none;
             }
+
+            /* Page number styling */
+            .page-footer {
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                text-align: right;
+                padding-right: 20px;
+                /* Adjust as needed */
+                font-size: 8pt;
+                color: #888;
+            }
+
+            /* This creates and increments the page counter */
+            @page {
+                counter-increment: page;
+
+                @bottom-right {
+                    content: "Page " counter(page);
+                }
+            }
         }
     </style>
 </head>
@@ -201,16 +222,16 @@
     <!-- UPDATED: Header is now a three-part table -->
     <table class="header-table">
         <tr>
-            <td style="width: 35%;" class="header-logo-name">
+            <td style="width: 40%;" class="header-logo-name">
                 {% if lab_settings and lab_settings.logo_path %}
                 <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
                 {% endif %}
-                <h1>{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h1>
+                <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
             </td>
-            <td style="width: 30%;" class="header-barcode">
+            <td style="width: 20%;" class="header-barcode">
                 <img src="{{ url_for('generate_barcode', data=sample.sample_uid, _external=True) }}" alt="Barcode">
             </td>
-            <td style="width: 35%;" class="header-details">
+            <td style="width: 40%;" class="header-details">
                 {% if sample.allotted_department %}<p><strong>{{ sample.allotted_department.name }}</strong> </p>{%
                 endif %}
                 {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}

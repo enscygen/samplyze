@@ -1,6 +1,6 @@
 # Samplyze
 
-**Version: 1.0.0**
+**Version: 1.1.2**
 
 **Samplyze** is a comprehensive, self-contained, and **offline-first** Laboratory Information & Management System (LIMS) built with **Python** and **Flask**. This system handles the complete workflow of a laboratory, from applicant registration and sample tracking to multi-step diagnosis, reporting, and internal collaboration tools.
 

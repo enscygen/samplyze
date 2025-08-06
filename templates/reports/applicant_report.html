@@ -92,7 +92,7 @@
         {% if lab_settings and lab_settings.logo_path %}
         <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path) }}" alt="Logo">
         {% endif %}
-        <h1>{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h1>
+        <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
         <p>{{ lab_settings.address if lab_settings else '' }}</p>
     </div>
 
