@@ -89,6 +89,30 @@
             width: 100%;
         }
 
+        .header img {
+            width: 100%;
+            max-width: 200px;
+        }
+
+        h2.lab-name-display {
+            font-size: 1rem;
+            margin: 0px;
+        }
+
+        p.description {
+            font-size: 0.8rem;
+            margin-bottom: 0px;
+        }
+
+        p.description-address {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .visitor-header{
+            text-align:center;
+        }
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
@@ -101,10 +125,17 @@
 <body>
     <div class="pass-container">
         <div class="header">
-            <h3>VISITOR PASS</h3>
-            <p>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }}</p>
+            {% if lab_settings and lab_settings.logo_path %}
+            <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
+            {% endif %}
+            <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Samplyze Security System' }}
+            </h2>
+            {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}
+            </p>{% endif %}
+            {% if lab_settings and lab_settings.address %}<p class="description-address">{{ lab_settings.address }}</p>
+            {% endif %}
         </div>
-
+        <h3 class="visitor-header">VISITOR PASS</h3>
         <div class="photo">
             {% if visitor.photo_filename %}
             <img src="{{ url_for('uploaded_file', filename=visitor.photo_filename, _external=True) }}"
@@ -153,7 +184,7 @@
             <img src="{{ url_for('generate_barcode', data=visitor.visitor_uid, _external=True) }}" alt="Barcode">
         </div>
         <div>
-            <div class="id-box-label">Visitor ID Number (To be filled by Security)</div>
+            <div class="id-box-label">Visitor ID Number (To be filled by Staff)</div>
             <div class="id-box"></div>
         </div>
 
@@ -161,7 +192,7 @@
         <div class="signatures">
             <div style="float: left; width: 30%;">
                 <div class="sig-line"></div>
-                <div class="sig-label">Security Staff</div>
+                <div class="sig-label">Front-office Staff</div>
             </div>
             <div style="float: right; width: 30%;">
                 <div class="sig-line"></div>
