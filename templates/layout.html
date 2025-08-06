@@ -81,6 +81,12 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('add_applicant') }}" title="Add Applicant"
                             data-bs-placement="bottom"><i class="bi bi-person-plus"></i><span class="d-lg-none ms-2">Add
                                 OA</span></a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('templating.dashboard') }}" title="Message Templates"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-textarea-t"></i><span class="d-lg-none ms-2">Message Templates</span>
+                        </a>
+                    </li>
                     {% endif %}
 
                     {% if current_user.can(Permission.CAN_ACCESS_SAMPLING_SERVICES) %}
@@ -143,6 +149,7 @@
                             <i class="bi bi-wifi"></i><span class="d-lg-none ms-2">Network Info</span>
                         </a>
                     </li>
+
                     {% endif %}
                     <!-- Common link for all logged-in users -->
                     <li class="nav-item">

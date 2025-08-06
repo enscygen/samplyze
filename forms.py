@@ -200,3 +200,10 @@ class VisitorEntryForm(FlaskForm):
     photo_data = HiddenField()
 
     submit = SubmitField('Save and Generate Pass')
+
+class TemplateForm(FlaskForm):
+    name = StringField('Template Name', validators=[DataRequired()])
+    category = SelectField('Template Data Source', choices=[('Sample', 'Sample Data'), ('Applicant', 'Applicant Data')], validators=[DataRequired()])
+    subject_template = StringField('Subject Template', validators=[Optional()])
+    body_template = TextAreaField('Body Template', validators=[DataRequired()], render_kw={'rows': 15})
+    submit = SubmitField('Save Template')

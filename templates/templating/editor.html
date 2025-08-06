@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">{{ title }}</h1>
+    <a href="{{ url_for('templating.dashboard') }}" class="btn btn-secondary">Back to Templates</a>
+</div>
+
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.category.label(class="form-label") }}
+                            {{ form.category(class="form-select", id="categorySelect") }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        {{ form.subject_template.label(class="form-label") }}
+                        {{ form.subject_template(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.body_template.label(class="form-label") }}
+                        {{ form.body_template(class="form-control") }}
+                    </div>
+                    <div class="text-center mt-4">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0">Available Parameters</h5></div>
+                <div class="card-body">
+                    <p class="text-muted"><small>Click any parameter to copy it to your clipboard.</small></p>
+                    <div id="param-list" class="list-group">
+                        <!-- Parameters are now rendered by the server -->
+                        {% for param in params %}
+                            <button type="button" class="list-group-item list-group-item-action p-2 param-btn" style="font-size: 0.9rem;">
+                                {{ "{{ " ~ param ~ " }}" }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Hidden textarea for the copy function -->
+<textarea id="copy-helper" style="position: absolute; left: -9999px;"></textarea>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('categorySelect');
+    const copyHelper = document.getElementById('copy-helper');
+    const paramButtons = document.querySelectorAll('.param-btn');
+
+    // When the category changes, reload the page with the new category as a URL parameter
+    categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        // Build the current URL and add the new category parameter
+        const url = new URL(window.location.href);
+        url.searchParams.set('category', category);
+        window.location.href = url.toString();
+    });
+
+    // Add click listeners to all parameter buttons
+    paramButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const paramText = button.textContent.trim();
+            
+            // Use the robust copy method
+            copyHelper.value = paramText;
+            copyHelper.select();
+            document.execCommand('copy');
+            
+            // Simple feedback
+            button.textContent = 'Copied!';
+            setTimeout(() => { button.textContent = paramText; }, 1000);
+        });
+    });
+});
+</script>
+{% endblock %}

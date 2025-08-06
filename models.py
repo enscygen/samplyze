@@ -314,3 +314,11 @@ class KnowledgeBase(db.Model):
     name = db.Column(db.String(150), nullable=False)    # e.g., "Fungal Test" or "Pest Infestation"
     title = db.Column(db.String(150), nullable=True)     # Only for Diagnosis
     description = db.Column(db.Text, nullable=True)    # For Diagnosis Method or Remedy Details
+
+class MessageTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    category = db.Column(db.String(50), nullable=False)  # 'Sample' or 'Applicant'
+    subject_template = db.Column(db.Text)
+    body_template = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_ist_time)

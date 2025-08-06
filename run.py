@@ -16,5 +16,5 @@ if __name__ == "__main__":
     webbrowser.open_new(URL)
 
     # --- Start the Waitress server ---
-    print(f"Starting server at {URL}")
+    print(f"Starting Enscygen Samplyze server at {URL}")
     serve(app, host=HOST, port=PORT)

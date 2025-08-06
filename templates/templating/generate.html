@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Generate Message from Template</h1>
+    <a href="{{ url_for('templating.dashboard') }}" class="btn btn-secondary">Back to Templates</a>
+</div>
+
+<div class="row">
+    <!-- Step 1 & 2 -->
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Step 1: Select Template</h5></div>
+            <div class="card-body">
+                <select id="templateSelect" class="form-select">
+                    <option value="">--- Choose a Template ---</option>
+                    {% for template in templates %}
+                    <option value="{{ template.id }}" data-category="{{ template.category }}">{{ template.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="card shadow-sm" id="searchCard" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">Step 2: Find Data</h5></div>
+            <div class="card-body">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by UID...">
+                <div id="searchResults" class="list-group mt-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="col-md-8">
+        <div class="card shadow-sm" id="resultCard" style="display: none;">
+            <div class="card-header"><h5 class="mb-0">Step 3: Generated Message</h5></div>
+            <div class="card-body">
+                <div class="mb-mail-part">
+                    <label class="form-label"><strong>Email:</strong> <span id="resultEmail"></span></label>
+                </div>
+                <div class="mb-mail-part">
+                    <label class="form-label"><strong>Phone:</strong> <span id="resultPhone"></span></label>
+                </div>
+                <hr>
+                <div class="mb-3">
+                    <label for="resultSubject" class="form-label"><strong>Subject</strong></label>
+                    <div class="input-group">
+                        <input type="text" id="resultSubject" class="form-control" readonly>
+                        <button class="btn btn-outline-secondary" type="button" id="copySubject"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="resultBody" class="form-label"><strong>Message Body</strong></label>
+                     <div class="input-group">
+                        <textarea id="resultBody" class="form-control" rows="10" readonly></textarea>
+                        <button class="btn btn-outline-secondary" type="button" id="copyBody"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <!-- UPDATED: Added the "Copy Mailing URL" button -->
+                    <button type="button" id="copyMailtoBtn" class="btn btn-secondary"><i class="bi bi-link-45deg"></i> Copy Mailing URL</button>
+                    <a href="#" id="draftMailBtn" class="btn btn-primary"><i class="bi bi-envelope-up"></i> Draft in Mail App</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const templateSelect = document.getElementById('templateSelect');
+    const searchCard = document.getElementById('searchCard');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const resultCard = document.getElementById('resultCard');
+
+    let selectedCategory = '';
+
+    templateSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        selectedCategory = selectedOption.getAttribute('data-category');
+        
+        if (selectedCategory) {
+            searchCard.style.display = 'block';
+            searchInput.placeholder = `Search by ${selectedCategory} UID...`;
+        } else {
+            searchCard.style.display = 'none';
+        }
+        resultCard.style.display = 'none';
+        searchInput.value = '';
+        searchResults.innerHTML = '';
+    });
+
+    searchInput.addEventListener('keyup', async function() {
+        const term = this.value;
+        if (term.length < 2) {
+            searchResults.innerHTML = '';
+            return;
+        }
+
+        const response = await fetch(`{{ url_for('templating.search_data', category='_CAT_', term='_TERM_') }}`.replace('_CAT_', selectedCategory).replace('_TERM_', term));
+        const data = await response.json();
+        
+        searchResults.innerHTML = '';
+        data.forEach(item => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.classList.add('list-group-item', 'list-group-item-action');
+            button.textContent = item.text;
+            button.dataset.id = item.id;
+            button.addEventListener('click', () => renderMessage(item.id));
+            searchResults.appendChild(button);
+        });
+    });
+
+    async function renderMessage(dataId) {
+        const formData = new FormData();
+        formData.append('template_id', templateSelect.value);
+        formData.append('data_id', dataId);
+        
+        const response = await fetch("{{ url_for('templating.render_message') }}", {
+            method: 'POST',
+            body: formData
+        });
+        const data = await response.json();
+
+        document.getElementById('resultEmail').textContent = data.email || 'N/A';
+        document.getElementById('resultPhone').textContent = data.phone || 'N/A';
+        document.getElementById('resultSubject').value = data.subject;
+        document.getElementById('resultBody').value = data.body;
+        
+        const mailtoLink = `mailto:${data.email}?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(data.body)}`;
+        document.getElementById('draftMailBtn').href = mailtoLink;
+
+        resultCard.style.display = 'block';
+    }
+
+    function copyToClipboard(elementId) {
+        const element = document.getElementById(elementId);
+        element.select();
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
+    }
+
+    document.getElementById('copySubject').addEventListener('click', () => copyToClipboard('resultSubject'));
+    document.getElementById('copyBody').addEventListener('click', () => copyToClipboard('resultBody'));
+
+    // NEW: Event listener for the new "Copy Mailing URL" button
+    document.getElementById('copyMailtoBtn').addEventListener('click', function() {
+        const mailtoLink = document.getElementById('draftMailBtn').href;
+        // Use a temporary input to copy the link
+        const tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = mailtoLink;
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('Mailing URL copied to clipboard!');
+    });
+});
+</script>
+{% endblock %}

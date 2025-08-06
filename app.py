@@ -31,6 +31,7 @@ from roles import roles_bp
 from visitors import visitors_bp
 # NEW: Import the new decorator
 from decorators import permission_required
+from templating import templating_bp
 
 # --- PyInstaller Path Correction ---
 if getattr(sys, 'frozen', False):
@@ -72,6 +73,7 @@ app.register_blueprint(equipment_bp)
 app.register_blueprint(backup_bp)
 app.register_blueprint(roles_bp)
 app.register_blueprint(visitors_bp)
+app.register_blueprint(templating_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
