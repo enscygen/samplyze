@@ -1,100 +1,85 @@
-Samplyze
-A comprehensive, self-contained web application built with Python and Flask for managing the complete workflow of a laboratory. This system handles everything from applicant registration and sample tracking to multi-step diagnosis, reporting, and internal file sharing.
+# Samplyze
 
-Key Features
-Role-Based Access Control: Separate portals for Administrators and Staff/Consultants with distinct permissions.
+**Version: 1.0.0**
 
-Complete Applicant Lifecycle: Track applicants from their first visit, manage personal and contact information, and view their entire consultancy history.
+A comprehensive, self-contained, and **offline-first** Laboratory Information & Management System (LIMS) built with **Python** and **Flask**. This system handles the complete workflow of a laboratory — from applicant registration and sample tracking to multi-step diagnosis, reporting, and internal collaboration tools.
 
-Dual Consultancy Tracks:
+---
 
-Sampled Consultancy (SC): Full-fledged sample management with unique IDs, detailed data entry, image attachments, and a multi-step diagnosis process.
+## 🚀 Key Features
 
-Non-Sampled Consultancy (NSC): A streamlined process for consultations that do not involve a physical sample.
+### 🔧 Core & Usability
 
-Dynamic File Management: Users can dynamically add multiple images or files with captions and previews when creating or editing records.
+- **Offline First**: All essential assets are served locally, allowing the application to function without an internet connection.
+- **Role-Based Access Control**: Create custom roles and assign fine-grained permissions for each module.
+- **Print-Friendly Reports & Cards**: Generate clean, print-ready reports and ID cards using the browser's native print functionality.
+- **Production-Ready Deployment**: Uses the **Waitress WSGI server** for stable and reliable performance.
 
-Folder-Based File Sharing: A dedicated module for staff to create shared folders, manage permissions, and upload/download files via a drag-and-drop interface.
+---
 
-Robust Data Integrity: Deleting primary records (like staff or departments) safely handles dependencies by un-assigning related records, preventing data corruption.
+### 🛠️ Administrator Portal
 
-Offline Capability: All essential assets (Bootstrap CSS/JS, Icons) are served locally, allowing the application to function without an internet connection.
+- **Admin Dashboard**: At-a-glance overview of total staff, applicants, and samples.
+- **Staff & Role Management**: Create new roles (e.g., *Lab Technician*, *Front Office*), assign permissions.
+- **System Configuration**: Customize lab name, logo, and contact details for reports.
+- **Data Management**:
+  - Create full-system backups
+  - Restore from backup
+  - Migrate data from older databases
+- **Audit Trail**: Searchable user activity log with CSV export.
 
-Print-Friendly Reporting: Generate clean, print-ready reports for applicants and samples using the browser's native print functionality.
+---
 
-Production-Ready Deployment: Uses the Waitress WSGI server for stable and reliable performance.
+### 👩‍🔬 Staff & Consultant Portal
 
-Tech Stack
-Backend: Python 3, Flask
+- **Applicant & Sample Management**: Track lifecycle with unique IDs, statuses, and details.
+- **Dual Consultancy Tracks**:
+  - *Sampled Consultancies (SC)* with multi-step diagnosis
+  - *Non-Sampled Consultancies (NSC)*
+- **Rich Text Diagnosis**: Integrated rich text editor with table support.
+- **Internal Mail System**: Secure staff messaging with file attachments and notifications.
+- **Folder-Based File Sharing**: Drag-and-drop uploads, permission-based access.
+- **Equipment Logging**: Check-in/out tracking with CSV import/export.
+- **Knowledge Base**: Repository of standard diagnoses/remedies for fast form filling.
+- **Visitor Management**: Register visitors with webcam photos, log entry/exit, print passes with barcodes.
 
-Database: SQLite (with SQLAlchemy ORM)
+---
 
-Forms & Validation: Flask-WTF, WTForms
+## 🧪 Tech Stack
 
-Server: Waitress WSGI Server
+- **Backend**: Python 3, Flask
+- **Database**: SQLite (via SQLAlchemy ORM)
+- **Forms & Validation**: Flask-WTF, WTForms
+- **Frontend**: Bootstrap 5, JavaScript, Quill.js
+- **Server**: Waitress WSGI Server
+- **Authentication**: Flask-Login
 
-Frontend: Bootstrap 5, JavaScript
+---
 
-Authentication: Flask-Login
+## ⚙️ Getting Started
 
-Getting Started
-Follow these instructions to get a copy of the project up and running on your local machine.
+### 📋 Prerequisites
 
-Prerequisites
-Python 3.10 or newer.
+- Python 3.10 or newer
+- pip (Python package installer)
 
-pip (Python package installer).
+---
 
-Installation
-Clone the repository:
+### 📦 Installation
 
+```bash
+# Clone the repository
 git clone <your-repository-url>
-cd lab_management_system
+cd samplyze-project
 
-Create and activate a virtual environment:
-
-On Windows:
-
+# Create and activate virtual environment
+# On Windows:
 python -m venv venv
 .\venv\Scripts\activate
 
-On macOS/Linux:
-
+# On macOS/Linux:
 python3 -m venv venv
 source venv/bin/activate
 
-Install the required packages:
-
+# Install dependencies
 pip install -r requirements.txt
-
-How to Run the Application
-Make sure your virtual environment is activated.
-
-Run the run.py script from the root of the project directory:
-
-python run.py
-
-This will start the Waitress server and automatically open the application in your default web browser at http://127.0.0.1:8000.
-
-Default Login
-A default administrator account is created the first time you run the application.
-
-Username: admin
-
-Password: password
-
-Log in as the admin to create departments and other staff accounts.
-
-How to Use
-Admin Setup: Log in as admin. Go to Manage Departments to create at least one department. Then, go to Manage Staff to create new user accounts.
-
-Staff Login: Log out and log back in with a staff account.
-
-Create Applicant: Navigate to Add OA to register a new applicant.
-
-Manage Consultancies: From the applicant's profile page, you can start a new Sampled Consultancy (SC) or Non-Sampled Consultancy (NSC).
-
-File Sharing: Access the File Sharing dashboard from the main navigation to create folders and share files with other users.
-
-License
-This project is licensed under the MIT License - see the LICENSE.md file for details.
