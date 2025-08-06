@@ -857,7 +857,7 @@ def uploaded_file(filename):
 @login_required
 def applicant_report(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
-    return render_template('reports/applicant_report.html', applicant=applicant)
+    return render_template('reports/applicant_report.html', applicant=applicant, generation_time=get_ist_time())
 
 
 @app.route('/sample/report/<sample_uid>')
@@ -873,6 +873,12 @@ def sample_report(sample_uid):
                            generation_time=get_ist_time(),
                            include_images=include_images,
                            show_attachments=show_attachments)
+
+@app.route('/nsc/report/<int:nsc_id>')
+@login_required
+def nsc_report(nsc_id):
+    nsc = ConsultancyNSC.query.get_or_404(nsc_id)
+    return render_template('reports/nsc_report.html', nsc=nsc, generation_time=get_ist_time())
 
 @app.route('/sample/card/<sample_uid>')
 @login_required

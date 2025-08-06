@@ -341,9 +341,9 @@
 
     <div class="footer-signatures">
         <div class="signature-block" style="float: right;">
-            <strong>Result Verified & Digitally Signed by</strong><br>
-            {{ sample.assigned_staff.name if sample.assigned_staff else 'N/A' }}<br>
-            <small>{{ sample.allotted_department.name if sample.allotted_department else 'N/A' }}</small><br>
+            <strong>Report Verified & Digitally Signed by</strong><br>
+            {{ current_user.name }}<br>
+            <small>{{ current_user.department.name if current_user.department else 'N/A' }}</small><br>
             <small>Signed at: {{ generation_time.strftime('%d-%b-%Y %I:%M %p') }}</small>
         </div>
         <div style="clear: both;"></div>

@@ -11,10 +11,27 @@
             color: #333;
         }
 
-        .header {
-            text-align: center;
+        .header-table {
+            width: 100%;
             padding-bottom: 10px;
             margin-bottom: 20px;
+        }
+
+        .header-table td {
+            vertical-align: middle;
+        }
+
+        .header-logo-name {
+            text-align: left;
+        }
+
+        td.header-details p {
+            margin: 0px;
+        }
+
+        .header-logo-name img {
+            max-height: 60px;
+            margin-bottom: 5px;
         }
 
         .header img {
@@ -22,14 +39,29 @@
             margin-bottom: 10px;
         }
 
-        .header h1 {
+        .header-logo-name h1 {
             margin: 0;
             font-size: 18pt;
         }
 
-        .header p {
-            margin: 0;
+        .header-barcode {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .header-barcode img {
+            max-height: 100px;
+        }
+
+        .header-details {
+            text-align: right;
+            font-size: 9pt;
             color: #666;
+            line-height: 1.2;
+        }
+
+        .header-details .description {
+            font-weight: bold;
         }
 
         .section {
@@ -45,21 +77,29 @@
             font-weight: 600;
         }
 
-        table {
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .details-table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        .details-table td {
+            padding: 6px 0;
+            vertical-align: top;
         }
 
-        th {
-            background-color: #f9f9f9;
+        .details-table .label {
             font-weight: bold;
+            width: 40%;
+        }
+
+        .details-table .value {
+            width: 60%;
         }
 
         .label {
@@ -71,6 +111,45 @@
             width: 70%;
         }
 
+        .footer-signatures {
+            margin-top: 50px;
+            padding-top: 20px;
+        }
+
+        .signature-block {
+            display: inline-block;
+            width: 45%;
+            text-align: center;
+            border: 1px dashed #bababa;
+            padding: 5px;
+        }
+
+        .signature-line {
+            border-bottom: 1px solid #000;
+            height: 40px;
+            margin-bottom: 5px;
+        }
+
+        .final-footer {
+            text-align: center;
+            font-size: 8pt;
+            color: #888;
+            margin-top: 30px;
+        }
+
+        .give-ens-report-table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ccc;
+        }
+
+        .give-ens-report-table th,
+        .give-ens-report-table td {
+            border: 1px solid #ccc;
+            padding: 3px 8px;
+            background: none;
+        }
+
         .page-break {
             page-break-before: always;
         }
@@ -78,6 +157,7 @@
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
             .no-print {
@@ -88,46 +168,67 @@
 </head>
 
 <body>
-    <div class="header">
-        {% if lab_settings and lab_settings.logo_path %}
-        <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path) }}" alt="Logo">
-        {% endif %}
-        <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
-        <p>{{ lab_settings.address if lab_settings else '' }}</p>
-    </div>
+    <table class="header-table">
+        <tr>
+            <td style="width: 40%;" class="header-logo-name">
+                {% if lab_settings and lab_settings.logo_path %}
+                <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
+                {% endif %}
+                <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
+            </td>
+            <td style="width: 20%;" class="header-barcode">
+                <img src="{{ url_for('generate_barcode', data=applicant.uid, _external=True) }}" alt="Barcode">
+            </td>
+            <td style="width: 40%;" class="header-details">
+                {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}
+                </p>{% endif %}
+                {% if lab_settings and lab_settings.address %}<p>{{ lab_settings.address }}</p>{% endif %}
+                {% if lab_settings and lab_settings.email %}<p>Email: {{ lab_settings.email }}</p>{% endif %}
+            </td>
+        </tr>
+    </table>
 
     <div class="section">
         <h2>Applicant Summary Report</h2>
-        <table>
-            <tr>
-                <td class="label">Applicant Name</td>
-                <td class="value">{{ applicant.name }}</td>
-            </tr>
-            <tr>
-                <td class="label">Applicant UID</td>
-                <td class="value">{{ applicant.uid }}</td>
-            </tr>
-            <tr>
-                <td class="label">Phone</td>
-                <td class="value">{{ applicant.phone or 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label">Address</td>
-                <td class="value">{{ applicant.full_address or 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label">Registered On</td>
-                <td class="value">{{ applicant.created_at.strftime('%d-%b-%Y') }}</td>
-            </tr>
-        </table>
+        <div class="grid-container">
+            <div>
+                <table class="details-table">
+                    <tr>
+                        <td class="label">Applicant Name</td>
+                        <td class="value">{{ applicant.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Applicant UID</td>
+                        <td class="value">{{ applicant.uid }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Phone</td>
+                        <td class="value">{{ applicant.phone or 'N/A' }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <table class="details-table">
+                    <tr>
+                        <td class="label">Address</td>
+                        <td class="value">{{ applicant.full_address or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Registered On</td>
+                        <td class="value">{{ applicant.created_at.strftime('%d-%b-%Y') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
     </div>
+
 
     <div class="section">
         <h2>Consultancy History</h2>
 
         <h3>Sampled Consultancies (SC)</h3>
         {% if applicant.samples_sc %}
-        <table>
+        <table class="give-ens-report-table">
             <thead>
                 <tr>
                     <th>Sample UID</th>
@@ -153,7 +254,7 @@
 
         <h3 style="margin-top: 20px;">Non-Sampled Consultancies (NSC)</h3>
         {% if applicant.consultancies_nsc %}
-        <table>
+        <table class="give-ens-report-table">
             <thead>
                 <tr>
                     <th>Date</th>
@@ -174,6 +275,21 @@
         {% else %}
         <p>No non-sampled consultancies found for this applicant.</p>
         {% endif %}
+    </div>
+
+    <div class="footer-signatures">
+        <div class="signature-block" style="float: right;">
+            <strong>Report Verified & Digitally Signed by</strong><br>
+            {{ current_user.name }}<br>
+            <small>{{ current_user.department.name if current_user.department else 'N/A' }}</small><br>
+            <small>Signed at: {{ generation_time.strftime('%d-%b-%Y %I:%M %p') }}</small>
+        </div>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="final-footer">
+        <p>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }} | Report Generated at {{
+            generation_time.strftime('%d-%b-%Y %I:%M %p') }}</p>
     </div>
 
     <script>
