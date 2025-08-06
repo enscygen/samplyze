@@ -182,6 +182,7 @@ class Diagnosis(db.Model):
     title = db.Column(db.String(150))
     description = db.Column(db.Text)
     result = db.Column(db.Text)
+    result_is_rich = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=get_ist_time)
     attachments = db.relationship('DiagnosisAttachment', backref='diagnosis', cascade="all, delete-orphan")
 

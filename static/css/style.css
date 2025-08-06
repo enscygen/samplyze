@@ -43,6 +43,26 @@ i.bi.bi-three-dots-vertical {
     color: #222;
 }
 
+.rich-text-field table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+.rich-text-field th,
+.rich-text-field td {
+    border: 1px solid #dee2e6;
+    padding: 3px 10px;
+    text-align: left;
+    vertical-align: top;
+}
+
+
+.rich-text-field strong {
+    font-weight: 600;
+}
+
+
 .attachments-div {
     padding-top: 15px;
     border-top: 1px dashed #efefef;
@@ -176,6 +196,10 @@ tbody#sampleTable td {
     /* Optional: shows '...' for overflow */
     scrollbar-width: none;
     /* Firefox: hides scrollbar */
+}
+
+span.app-name {
+    font-size: 0.95rem;
 }
 
 tbody#sampleTable td::-webkit-scrollbar {

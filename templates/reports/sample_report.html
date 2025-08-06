@@ -158,6 +158,30 @@
             page-break-before: always;
         }
 
+        .rich-text-field table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+
+        .rich-text-field th,
+        .rich-text-field td {
+            border: 1px solid #dee2e6;
+            padding: 3px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+
+        .rich-text-field strong {
+            font-weight: 600;
+        }
+
+        .mb-slight {
+            margin-bottom: 5px;
+            color: #222;
+        }
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
@@ -244,7 +268,7 @@
         </div>
     </div>
 
-    {% if sample.images %}
+    {% if include_images and sample.images %}
     <div class="section image-gallery">
         <h2>Sample Images</h2>
         <div class="sample-img-holder">
@@ -267,15 +291,20 @@
             <h3>{{ diagnosis.title }} ({{ diagnosis.name }})</h3>
             <p><strong>Date:</strong> {{ diagnosis.created_at.strftime('%d-%b-%Y %I:%M %p') }}</p>
 
-            <strong>Description / Method:</strong>
+            <p class="mb-slight"><strong>Description / Method</strong></p>
             <div>{{ diagnosis.description | nl2br or 'N/A' }}</div>
-            <br>
-            <strong>Result / Observations:</strong>
-            <div>{{ diagnosis.result | nl2br }}</div>
+            <p class="mb-slight"><strong>Result / Observations</strong></p>
+            <div class="rich-text-field">
+                {% if diagnosis.result_is_rich %}
+                {{ diagnosis.result | safe }}
+                {% else %}
+                {{ diagnosis.result | nl2br }}
+                {% endif %}
+            </div>
 
-            {% if diagnosis.attachments %}
+            {% if show_attachments and diagnosis.attachments %}
 
-            <strong>Attachments:</strong>
+            <p class="mb-slight"><strong>Attachments</strong></p>
             <ul>
                 {% for attachment in diagnosis.attachments %}
                 <li>{{ attachment.original_filename }} ({{ attachment.file_type }})</li>

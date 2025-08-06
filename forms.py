@@ -116,12 +116,14 @@ class SampleForm(FlaskForm):
     
     submit = SubmitField('Save Sample and Generate UID')
 
+ 
 class DiagnosisForm(FlaskForm):
     name = StringField('Diagnosis Name / Test', validators=[Optional()])
     title = StringField('Title', validators=[Optional()])
     description = TextAreaField('Description / Method')
     result = TextAreaField('Result / Observations', validators=[Optional()])
-    submit = SubmitField('Add Diagnosis')
+    is_rich_text = BooleanField('Use Rich Text Editor for Result')
+    submit = SubmitField('Add Diagnosis') 
 
 class CreateFolderForm(FlaskForm):
     name = StringField('Folder Name', validators=[DataRequired(), Length(min=3, max=100)])

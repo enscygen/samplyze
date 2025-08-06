@@ -28,59 +28,192 @@
             </div>
             <div class="mb-3">
                 {{ form.result.label(class="form-label") }}
-                {{ form.result(class="form-control", rows=5) }}
+                <div class="form-check form-switch mb-2">
+                    {{ form.is_rich_text(class="form-check-input", id="isRichText") }}
+                    {{ form.is_rich_text.label(class="form-check-label") }}
+                </div>
+                <div id="editor-container" style="display: none;">
+                    <div id="toolbar-container">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option value="1"></option>
+                                <option value="2"></option>
+                                <option value="3"></option>
+                                <option selected></option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-align"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-link"></button>
+                            <button class="ql-image"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-table"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </div>
+                    <div id="editor" style="height: 250px;"></div>
+                </div>
+                {{ form.result(class="form-control", rows=8, id="resultTextarea") }}
             </div>
-            
+
             <hr>
             <!-- UPDATED: Section for managing existing and new attachments -->
             <div class="mb-3">
                 <h5>Manage Attachments</h5>
                 {% if diagnosis.attachments %}
-                    <p class="text-muted">Check the box next to any file to delete it upon saving.</p>
-                    <ul class="list-group mb-3">
+                <p class="text-muted">Check the box next to any file to delete it upon saving.</p>
+                <ul class="list-group mb-3">
                     {% for attachment in diagnosis.attachments %}
-                        <li class="list-group-item">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="delete_attachments" value="{{ attachment.id }}" id="delete-{{ attachment.id }}">
-                                <label class="form-check-label" for="delete-{{ attachment.id }}">
-                                    Delete: <a href="{{ url_for('uploaded_file', filename=attachment.file_path) }}" target="_blank">{{ attachment.original_filename }}</a>
-                                </label>
-                            </div>
-                        </li>
+                    <li class="list-group-item">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="delete_attachments"
+                                value="{{ attachment.id }}" id="delete-{{ attachment.id }}">
+                            <label class="form-check-label" for="delete-{{ attachment.id }}">
+                                Delete: <a href="{{ url_for('uploaded_file', filename=attachment.file_path) }}"
+                                    target="_blank">{{ attachment.original_filename }}</a>
+                            </label>
+                        </div>
+                    </li>
                     {% endfor %}
-                    </ul>
+                </ul>
                 {% else %}
-                    <p class="text-muted">No files are currently attached to this diagnosis.</p>
+                <p class="text-muted">No files are currently attached to this diagnosis.</p>
                 {% endif %}
-                
+
                 <hr>
                 <h6>Add New Files</h6>
                 <div id="file-container"></div>
-                <button type="button" id="add-file-btn" class="btn btn-sm btn-outline-primary mt-2"><i class="bi bi-plus-circle"></i> Add New File</button>
+                <button type="button" id="add-file-btn" class="btn btn-sm btn-outline-primary mt-2"><i
+                        class="bi bi-plus-circle"></i> Add New File</button>
             </div>
 
             <div class="text-center mt-4">
                 <input type="submit" class="btn btn-primary btn-lg" value="Update Diagnosis">
-                <a href="{{ url_for('view_sample', sample_uid=diagnosis.sample.sample_uid) }}" class="btn btn-secondary btn-lg">Cancel</a>
+                <a href="{{ url_for('view_sample', sample_uid=diagnosis.sample.sample_uid) }}"
+                    class="btn btn-secondary btn-lg">Cancel</a>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="modal fade" id="tableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Insert Table</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="tableRows" class="form-label">Rows</label>
+                        <input type="number" class="form-control" id="tableRows" value="3" min="1">
+                    </div>
+                    <div class="col">
+                        <label for="tableCols" class="form-label">Columns</label>
+                        <input type="number" class="form-control" id="tableCols" value="3" min="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createTableBtn">Create Table</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script>
-    // This script is identical to the one in add_diagnosis.html
-document.addEventListener('DOMContentLoaded', function() {
-    const addFileBtn = document.getElementById('add-file-btn');
-    const fileContainer = document.getElementById('file-container');
-    let fileCounter = 0;
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/quill.js') }}"></script>
 
-    addFileBtn.addEventListener('click', function() {
-        const fileRow = document.createElement('div');
-        fileRow.classList.add('row', 'mb-3', 'align-items-center', 'file-entry');
-        
-        fileRow.innerHTML = `
+<script>
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const isRichTextCheck = document.getElementById('isRichText');
+        const editorContainer = document.getElementById('editor-container');
+        const resultTextarea = document.getElementById('resultTextarea');
+        let quill;
+        const tableModal = new bootstrap.Modal(document.getElementById('tableModal'));
+
+        function customTableHandler() {
+            tableModal.show();
+        }
+
+        function toggleEditor() {
+            if (isRichTextCheck.checked) {
+                editorContainer.style.display = 'block';
+                resultTextarea.style.display = 'none';
+                if (!quill) {
+                    quill = new Quill('#editor', {
+                        theme: 'snow',
+                        modules: {
+                            table: true,
+                            toolbar: {
+                                container: '#toolbar-container',
+                                handlers: {
+                                    'table': customTableHandler
+                                }
+                            }
+                        }
+                    });
+                    quill.root.innerHTML = resultTextarea.value;
+                }
+                quill.root.innerHTML = resultTextarea.value;
+            } else {
+                editorContainer.style.display = 'none';
+                resultTextarea.style.display = 'block';
+                if (quill) {
+                    resultTextarea.value = quill.root.innerHTML;
+                }
+            }
+        }
+        isRichTextCheck.addEventListener('change', toggleEditor);
+        toggleEditor();
+
+        document.getElementById('createTableBtn').addEventListener('click', function () {
+            const rows = parseInt(document.getElementById('tableRows').value, 10);
+            const cols = parseInt(document.getElementById('tableCols').value, 10);
+            if (quill && rows > 0 && cols > 0) {
+                const tableModule = quill.getModule('table');
+                tableModule.insertTable(rows, cols);
+            }
+            tableModal.hide();
+        });
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function () {
+            if (isRichTextCheck.checked && quill) {
+                resultTextarea.value = quill.root.innerHTML;
+            }
+        });
+
+
+        const addFileBtn = document.getElementById('add-file-btn');
+        const fileContainer = document.getElementById('file-container');
+        let fileCounter = 0;
+
+        addFileBtn.addEventListener('click', function () {
+            const fileRow = document.createElement('div');
+            fileRow.classList.add('row', 'mb-3', 'align-items-center', 'file-entry');
+
+            fileRow.innerHTML = `
             <div class="col-md-3">
                 <div class="preview-area p-2 border rounded text-center">
                     <img src="https://placehold.co/600x400/f8f9fa/ccc?text=Preview" class="img-fluid rounded preview-img" style="display: none;">
@@ -95,40 +228,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 <button type="button" class="btn btn-sm btn-danger remove-btn">X</button>
             </div>
         `;
-        
-        fileContainer.appendChild(fileRow);
-        fileCounter++;
 
-        const fileInput = fileRow.querySelector('.file-input');
-        const captionInput = fileRow.querySelector('.caption-input');
-        const previewImg = fileRow.querySelector('.preview-img');
-        const fileNameDisplay = fileRow.querySelector('.file-name-display');
+            fileContainer.appendChild(fileRow);
+            fileCounter++;
 
-        fileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                captionInput.value = file.name;
-                
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        previewImg.src = e.target.result;
-                        previewImg.style.display = 'block';
-                        fileNameDisplay.style.display = 'none';
+            const fileInput = fileRow.querySelector('.file-input');
+            const captionInput = fileRow.querySelector('.caption-input');
+            const previewImg = fileRow.querySelector('.preview-img');
+            const fileNameDisplay = fileRow.querySelector('.file-name-display');
+
+            fileInput.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                if (file) {
+                    captionInput.value = file.name;
+
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            previewImg.src = e.target.result;
+                            previewImg.style.display = 'block';
+                            fileNameDisplay.style.display = 'none';
+                        }
+                        reader.readAsDataURL(file);
+                    } else {
+                        previewImg.style.display = 'none';
+                        fileNameDisplay.textContent = file.name;
+                        fileNameDisplay.style.display = 'block';
                     }
-                    reader.readAsDataURL(file);
-                } else {
-                    previewImg.style.display = 'none';
-                    fileNameDisplay.textContent = file.name;
-                    fileNameDisplay.style.display = 'block';
                 }
-            }
-        });
+            });
 
-        fileRow.querySelector('.remove-btn').addEventListener('click', function() {
-            fileRow.remove();
+            fileRow.querySelector('.remove-btn').addEventListener('click', function () {
+                fileRow.remove();
+            });
         });
     });
-});
 </script>
 {% endblock %}

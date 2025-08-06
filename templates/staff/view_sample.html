@@ -17,8 +17,11 @@
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
     <h1 class="h2">Sample Details</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <button type="button" class="btn btn-sm btn-success me-2"
-            onclick="window.open('{{ url_for('sample_report', sample_uid=sample.sample_uid) }}', 'Report', 'width=800,height=600')">
+        <button type="button" class="btn btn-sm btn-outline-dark me-2"
+            onclick="window.open('{{ url_for('sample_card', sample_uid=sample.sample_uid) }}', 'Card', 'width=400,height=300')">
+            <i class="bi bi-upc-scan"></i> Print Sample Card
+        </button>
+        <button type="button" class="btn btn-sm btn-success me-2" id="generateReportBtn">
             <i class="bi bi-file-earmark-pdf"></i> Generate Report
         </button>
         <button type="button" class="btn btn-sm btn-outline-danger me-2" data-bs-toggle="modal"
@@ -149,6 +152,26 @@
                 </div>
             </div>
         </div>
+        <!-- NEW: Report Options Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Report Generation Options</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="includeImages" checked>
+                    <label class="form-check-label" for="includeImages">
+                        Include Sample Images in Report
+                    </label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="showAttachments" checked>
+                    <label class="form-check-label" for="showAttachments">
+                        Show Attachments in Diagnosis
+                    </label>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -186,10 +209,18 @@
                         <p><strong>Description:</strong><br>{{ diagnosis.description | nl2br or 'No description
                             provided.' }}</p>
 
-                        <p><strong>Result:</strong><br>{{ diagnosis.result | nl2br }}</p>
+                        <p class="mb-0"><strong>Result:</strong>
+                        <div class="rich-text-field">
+                            {% if diagnosis.result_is_rich %}
+                            {{ diagnosis.result | safe }}
+                            {% else %}
+                            {{ diagnosis.result | nl2br }}
+                            {% endif %}
+                        </div>
+                        </p>
 
                         {% if diagnosis.attachments %}
-                     
+
                         <h6>Attachments:</h6>
                         <ul class="list-group list-group-flush">
                             {% for attachment in diagnosis.attachments %}
@@ -269,4 +300,18 @@
     </div>
 </div>
 {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('generateReportBtn').addEventListener('click', function () {
+        const includeImages = document.getElementById('includeImages').checked;
+        const showAttachments = document.getElementById('showAttachments').checked;
+
+        const baseUrl = "{{ url_for('sample_report', sample_uid=sample.sample_uid) }}";
+        const finalUrl = `${baseUrl}?include_images=${includeImages}&show_attachments=${showAttachments}`;
+
+        window.open(finalUrl, 'Report', 'width=800,height=600');
+    });
+</script>
 {% endblock %}

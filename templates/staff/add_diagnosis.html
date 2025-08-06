@@ -9,8 +9,8 @@
         <form method="POST" action="" enctype="multipart/form-data" novalidate>
             {{ form.hidden_tag() }}
             <div class="row add-diagnosis-from-kb">
-                <button type="button" class="btn btn-sm btn-outline-info float-end add-diagnosis-from-kb-btn" data-bs-toggle="modal"
-                    data-bs-target="#kbModal" data-category="Diagnosis">
+                <button type="button" class="btn btn-sm btn-outline-info float-end add-diagnosis-from-kb-btn"
+                    data-bs-toggle="modal" data-bs-target="#kbModal" data-category="Diagnosis">
                     <i class="bi bi-book"></i> Add from Knowledge Base
                 </button>
             </div>
@@ -30,7 +30,49 @@
             </div>
             <div class="mb-3">
                 {{ form.result.label(class="form-label") }}
-                {{ form.result(class="form-control", rows=5) }}
+                <div class="form-check form-switch mb-2">
+                    {{ form.is_rich_text(class="form-check-input", id="isRichText") }}
+                    {{ form.is_rich_text.label(class="form-check-label") }}
+                </div>
+                <!-- This is the container for the Quill editor -->
+                <div id="editor-container" style="display: none;">
+                    <div id="toolbar-container">
+                        <span class="ql-formats">
+                            <select class="ql-header">
+                                <option value="1"></option>
+                                <option value="2"></option>
+                                <option value="3"></option>
+                                <option selected></option>
+                            </select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-strike"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-list" value="ordered"></button>
+                            <button class="ql-list" value="bullet"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <select class="ql-align"></select>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-link"></button>
+                            <button class="ql-image"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-table"></button>
+                        </span>
+                        <span class="ql-formats">
+                            <button class="ql-clean"></button>
+                        </span>
+                    </div>
+                    <div id="editor" style="height: 250px;"></div>
+                </div>
+                <!-- This is the standard textarea, it will be hidden when the editor is active -->
+                {{ form.result(class="form-control", rows=8, id="resultTextarea") }}
             </div>
 
             <!-- Dynamic File Attachment Section -->
@@ -67,12 +109,101 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="tableModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Insert Table</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="tableRows" class="form-label">Rows</label>
+                        <input type="number" class="form-control" id="tableRows" value="3" min="1">
+                    </div>
+                    <div class="col">
+                        <label for="tableCols" class="form-label">Columns</label>
+                        <input type="number" class="form-control" id="tableCols" value="3" min="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="createTableBtn">Create Table</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/quill.js') }}"></script>
+
 <script>
-    // This is the script for the dynamic file uploader
+
     document.addEventListener('DOMContentLoaded', function () {
+        const isRichTextCheck = document.getElementById('isRichText');
+        const editorContainer = document.getElementById('editor-container');
+        const resultTextarea = document.getElementById('resultTextarea');
+        let quill;
+        const tableModal = new bootstrap.Modal(document.getElementById('tableModal'));
+
+        function customTableHandler() {
+            tableModal.show();
+        }
+
+        function toggleEditor() {
+            if (isRichTextCheck.checked) {
+                editorContainer.style.display = 'block';
+                resultTextarea.style.display = 'none';
+                if (!quill) {
+                    quill = new Quill('#editor', {
+                        theme: 'snow',
+                        modules: {
+                            table: true,
+                            toolbar: {
+                                container: '#toolbar-container',
+                                handlers: {
+                                    'table': customTableHandler
+                                }
+                            }
+                        }
+                    });
+                    quill.root.innerHTML = resultTextarea.value;
+                }
+                quill.root.innerHTML = resultTextarea.value;
+            } else {
+                editorContainer.style.display = 'none';
+                resultTextarea.style.display = 'block';
+                if (quill) {
+                    resultTextarea.value = quill.root.innerHTML;
+                }
+            }
+        }
+        isRichTextCheck.addEventListener('change', toggleEditor);
+        toggleEditor();
+
+        document.getElementById('createTableBtn').addEventListener('click', function () {
+            const rows = parseInt(document.getElementById('tableRows').value, 10);
+            const cols = parseInt(document.getElementById('tableCols').value, 10);
+            if (quill && rows > 0 && cols > 0) {
+                const tableModule = quill.getModule('table');
+                tableModule.insertTable(rows, cols);
+            }
+            tableModal.hide();
+        });
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function () {
+            if (isRichTextCheck.checked && quill) {
+                resultTextarea.value = quill.root.innerHTML;
+            }
+        });
+
+        // --- Dynamic File Uploader Logic ---
         const addFileBtn = document.getElementById('add-file-btn');
         const fileContainer = document.getElementById('file-container');
         let fileCounter = 0;
@@ -131,7 +262,7 @@
             });
         });
 
-        // --- NEW: Script for Knowledge Base Modal ---
+        // --- Knowledge Base Modal Logic ---
         const kbModal = document.getElementById('kbModal');
         const kbList = document.getElementById('kb-list');
         const kbSearch = document.getElementById('kbSearch');

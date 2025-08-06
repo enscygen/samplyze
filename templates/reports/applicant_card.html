@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Applicant Card: {{ applicant.uid }}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            font-size: 10pt;
+        }
+
+        .card-container {
+            width: 3.5in;
+            border: 1px solid #000;
+            padding: 0.25in;
+            box-sizing: border-box;
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            text-align: center;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .header img {
+            max-height: 40px;
+        }
+
+        .header h4 {
+            margin: 5px 0 0 0;
+            font-size: 12pt;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .details {
+            margin-top: 10px;
+        }
+
+        .details table {
+            width: 100%;
+            font-size: 9pt;
+        }
+
+        .details td {
+            padding: 1px;
+            vertical-align: top;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 30%;
+        }
+
+        .barcode {
+            text-align: center;
+        }
+
+        .barcode img {
+            width: 80%;
+        }
+
+        .footer {
+            font-size: 7pt;
+            color: #999;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        @media print {
+            @page {
+                size: 3.5in 2in;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card-container">
+        <div class="header">
+            {% if lab_settings and lab_settings.logo_path %}
+            <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
+            {% endif %}
+            <h4>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }}</h4>
+            {% if lab_settings and lab_settings.description %}<p>{{ lab_settings.description }}</p>{% endif %}
+        </div>
+        <div class="barcode">
+            <img src="{{ url_for('generate_barcode', data=applicant.uid, _external=True) }}" alt="Barcode">
+        </div>
+        <div class="details">
+            <table>
+                <tr>
+                    <td class="label">Applicant UID:</td>
+                    <td>{{ applicant.uid }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Name:</td>
+                    <td>{{ applicant.name }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Phone:</td>
+                    <td>{{ applicant.phone }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="footer">
+            Card Generated: {{ generation_time.strftime('%d-%b-%Y %I:%M %p') }}
+        </div>
+    </div>
+    <script>
+        window.onload = function () { window.print(); }
+    </script>
+</body>
+
+</html>

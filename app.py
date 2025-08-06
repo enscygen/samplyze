@@ -133,7 +133,7 @@ def generate_barcode(data):
         barcode_image = code128(data, writer=writer)
         
         buffer = BytesIO()
-        barcode_image.write(buffer)
+        barcode_image.write(buffer, options={'module_height': 5.0})
         buffer.seek(0)
         
         return send_file(buffer, mimetype='image/png')
@@ -683,8 +683,12 @@ def add_diagnosis(sample_uid):
     form = DiagnosisForm()
     if form.validate_on_submit():
         new_diagnosis = Diagnosis(
-            sample_sc_id=sample.id, name=form.name.data, title=form.title.data,
-            description=form.description.data, result=form.result.data
+            sample_sc_id=sample.id, 
+            name=form.name.data, 
+            title=form.title.data,
+            description=form.description.data, 
+            result=form.result.data,
+            result_is_rich=form.is_rich_text.data
         )
         db.session.add(new_diagnosis)
         db.session.flush()
@@ -853,11 +857,32 @@ def applicant_report(uid):
     applicant = Applicant.query.filter_by(uid=uid).first_or_404()
     return render_template('reports/applicant_report.html', applicant=applicant)
 
+
 @app.route('/sample/report/<sample_uid>')
 @login_required
 def sample_report(sample_uid):
     sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
-    return render_template('reports/sample_report.html', sample=sample, generation_time=get_ist_time())
+    # Get parameters from URL, default to True if not present
+    include_images = request.args.get('include_images', 'true').lower() == 'true'
+    show_attachments = request.args.get('show_attachments', 'true').lower() == 'true'
+    
+    return render_template('reports/sample_report.html', 
+                           sample=sample, 
+                           generation_time=get_ist_time(),
+                           include_images=include_images,
+                           show_attachments=show_attachments)
+
+@app.route('/sample/card/<sample_uid>')
+@login_required
+def sample_card(sample_uid):
+    sample = SampleSC.query.filter_by(sample_uid=sample_uid).first_or_404()
+    return render_template('reports/sample_card.html', sample=sample)
+
+@app.route('/applicant/card/<uid>')
+@login_required
+def applicant_card(uid):
+    applicant = Applicant.query.filter_by(uid=uid).first_or_404()
+    return render_template('reports/applicant_card.html', applicant=applicant, generation_time=get_ist_time())
 
 
 # --- Context Processors ---
