@@ -150,4 +150,4 @@ For feedback, bug reports, or feature requests, please open an issue or submit a
 
 ---
 
-> © 2025 Samplyze | Built with ❤️ using Flask
+> © 2025 Samplyze | Built with ❤️ from Enscygen
