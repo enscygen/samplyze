@@ -65,7 +65,7 @@
                 </div>
                 <div class="primary-obs-div">
                     <h6><strong>Primary Observations</strong></h6>
-                    <p class="text-muted">{{ sample.primary_observations or 'No observations were recorded.' }}</p>
+                    <p class="text-muted">{{ (sample.primary_observations or 'No observations were recorded.') | nl2br }}</p>
                 </div>
                 {% if sample.images %}
 
@@ -205,8 +205,11 @@
                             </button>
                         </div>
 
-                        <p><strong>Description:</strong><br>{{ diagnosis.description | nl2br or 'No description
-                            provided.' }}</p>
+                        <p><strong>Description:</strong><br>{% if diagnosis.description %}
+                            {{ diagnosis.description | nl2br | safe }}
+                            {% else %}
+                            No description provided.
+                            {% endif %}</p>
 
                         <p class="mb-0"><strong>Result:</strong>
                         <div class="rich-text-field">

@@ -301,7 +301,8 @@ class Visitor(db.Model):
     entry_time = db.Column(db.DateTime, default=get_ist_time, nullable=False)
     exit_time = db.Column(db.DateTime, nullable=True)
     photo_filename = db.Column(db.String(255), nullable=True)
-    
+    vehicle_type = db.Column(db.String(100))
+    vehicle_number = db.Column(db.String(50))
     assigned_department_id = db.Column(db.Integer, db.ForeignKey('department.id', ondelete='SET NULL'), nullable=True)
     assigned_staff_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
 

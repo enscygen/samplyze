@@ -61,6 +61,8 @@ def entry():
             id_number=form.id_number.data,
             applicant_uid=form.applicant_uid.data,
             institution=form.institution.data,
+            vehicle_type=form.vehicle_type.data,
+            vehicle_number=form.vehicle_number.data,
             purpose=form.purpose.data,
             assigned_department_id=form.assigned_department_id.data,
             assigned_staff_id=form.assigned_staff_id.data

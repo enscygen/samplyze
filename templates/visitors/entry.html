@@ -12,34 +12,53 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6 mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
-                        <div class="col-md-6 mb-3">{{ form.phone.label(class="form-label") }}{{ form.phone(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.name.label(class="form-label") }}{{
+                            form.name(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.phone.label(class="form-label") }}{{
+                            form.phone(class="form-control") }}</div>
                     </div>
-                    <div class="mb-3">{{ form.address.label(class="form-label") }}{{ form.address(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.address.label(class="form-label") }}{{ form.address(class="form-control")
+                        }}</div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">{{ form.id_type.label(class="form-label") }}{{ form.id_type(class="form-control") }}</div>
-                        <div class="col-md-6 mb-3">{{ form.id_number.label(class="form-label") }}{{ form.id_number(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.id_type.label(class="form-label") }}{{
+                            form.id_type(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.id_number.label(class="form-label") }}{{
+                            form.id_number(class="form-control") }}</div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3">{{ form.institution.label(class="form-label") }}{{ form.institution(class="form-control") }}</div>
-                        <div class="col-md-6 mb-3">{{ form.applicant_uid.label(class="form-label") }}{{ form.applicant_uid(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.institution.label(class="form-label") }}{{
+                            form.institution(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.applicant_uid.label(class="form-label") }}{{
+                            form.applicant_uid(class="form-control") }}</div>
                     </div>
-                    <div class="mb-3">{{ form.purpose.label(class="form-label") }}{{ form.purpose(class="form-control") }}</div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.vehicle_type.label(class="form-label") }}{{
+                            form.vehicle_type(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.vehicle_number.label(class="form-label") }}{{
+                            form.vehicle_number(class="form-control") }}</div>
+                    </div>
+                    <div class="mb-3">{{ form.purpose.label(class="form-label") }}{{ form.purpose(class="form-control")
+                        }}</div>
                     <hr>
                     <div class="row">
-                        <div class="col-md-6 mb-3">{{ form.assigned_department_id.label(class="form-label") }}{{ form.assigned_department_id(class="form-select") }}</div>
-                        <div class="col-md-6 mb-3">{{ form.assigned_staff_id.label(class="form-label") }}{{ form.assigned_staff_id(class="form-select") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.assigned_department_id.label(class="form-label") }}{{
+                            form.assigned_department_id(class="form-select") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.assigned_staff_id.label(class="form-label") }}{{
+                            form.assigned_staff_id(class="form-select") }}</div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0">Capture Photo</h5></div>
+                <div class="card-header">
+                    <h5 class="mb-0">Capture Photo</h5>
+                </div>
                 <div class="card-body text-center">
                     <video id="video" width="320" height="240" autoplay class="bg-dark"></video>
                     <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
-                    <img id="photo" src="https://placehold.co/320x240/f8f9fa/ccc?text=Photo+Preview" alt="Visitor photo" class="img-fluid rounded mb-2">
+                    <img id="photo" src="https://placehold.co/320x240/f8f9fa/ccc?text=Photo+Preview" alt="Visitor photo"
+                        class="img-fluid rounded mb-2">
                     <button type="button" id="snap" class="btn btn-secondary w-100">Capture Photo</button>
                 </div>
             </div>
@@ -53,29 +72,29 @@
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const photo = document.getElementById('photo');
-    const snap = document.getElementById('snap');
-    const photoDataField = document.getElementById('photo_data');
+    document.addEventListener('DOMContentLoaded', function () {
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const photo = document.getElementById('photo');
+        const snap = document.getElementById('snap');
+        const photoDataField = document.getElementById('photo_data');
 
-    // Get access to the camera
-    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
-            video.srcObject = stream;
-            video.play();
+        // Get access to the camera
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function (stream) {
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+
+        // Capture a photo
+        snap.addEventListener('click', function () {
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, 320, 240);
+            const dataURL = canvas.toDataURL('image/png');
+            photo.setAttribute('src', dataURL);
+            photoDataField.setAttribute('value', dataURL);
         });
-    }
-
-    // Capture a photo
-    snap.addEventListener('click', function() {
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, 320, 240);
-        const dataURL = canvas.toDataURL('image/png');
-        photo.setAttribute('src', dataURL);
-        photoDataField.setAttribute('value', dataURL);
     });
-});
 </script>
 {% endblock %}

@@ -193,7 +193,8 @@ class VisitorEntryForm(FlaskForm):
     applicant_uid = StringField('Existing Applicant UID (Optional)')
     institution = StringField('Institution / Organization')
     purpose = TextAreaField('Purpose of Visit', validators=[DataRequired()], render_kw={'rows': 3})
-    
+    vehicle_type = StringField('Vehicle Type (e.g., Car, Bike)')
+    vehicle_number = StringField('Vehicle Registration Number')
     assigned_department_id = SelectField('Assign to Department', coerce=coerce_int_or_none, validators=[Optional()])
     assigned_staff_id = SelectField('Assign to Staff', coerce=coerce_int_or_none, validators=[Optional()])
     

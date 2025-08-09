@@ -180,9 +180,9 @@
                 <img src="{{ url_for('generate_barcode', data=applicant.uid, _external=True) }}" alt="Barcode">
             </td>
             <td style="width: 40%;" class="header-details">
-                {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}
+                {% if lab_settings and lab_settings.description %}<p class="description">{{ (lab_settings.description or '') | nl2br }}
                 </p>{% endif %}
-                {% if lab_settings and lab_settings.address %}<p>{{ lab_settings.address }}</p>{% endif %}
+                {% if lab_settings and lab_settings.address %}<p>{{ (lab_settings.address or '') | nl2br }}</p>{% endif %}
                 {% if lab_settings and lab_settings.email %}<p>Email: {{ lab_settings.email }}</p>{% endif %}
             </td>
         </tr>

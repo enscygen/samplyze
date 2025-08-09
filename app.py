@@ -80,7 +80,11 @@ app.register_blueprint(templating_bp)
 def nl2br_filter(s):
     if s is None:
         return ''
-    return Markup(escape(s).replace('\n', '<br>\n'))
+    # Escape HTML but keep \n for later replacement
+    escaped = escape(s)
+    # Replace newlines with <br>
+    with_breaks = escaped.replace('\n', Markup('<br>\n'))
+    return Markup(with_breaks)
 
 
 # --- User Loader for Flask-Login ---

@@ -109,8 +109,8 @@
             margin-top: 5px;
         }
 
-        .visitor-header{
-            text-align:center;
+        .visitor-header {
+            text-align: center;
         }
 
         @media print {
@@ -130,12 +130,14 @@
             {% endif %}
             <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Samplyze Security System' }}
             </h2>
-            {% if lab_settings and lab_settings.description %}<p class="description">{{ lab_settings.description }}
+            {% if lab_settings and lab_settings.description %}<p class="description">{{ (lab_settings.description or '')
+                | nl2br }}
             </p>{% endif %}
-            {% if lab_settings and lab_settings.address %}<p class="description-address">{{ lab_settings.address }}</p>
+            {% if lab_settings and lab_settings.address %}<p class="description-address">{{ (lab_settings.address or '')
+                | nl2br }}</p>
             {% endif %}
         </div>
-        <h3 class="visitor-header">VISITOR PASS</h3>
+        <h3 class="visitor-header">VISITOR e-PASS</h3>
         <div class="photo">
             {% if visitor.photo_filename %}
             <img src="{{ url_for('uploaded_file', filename=visitor.photo_filename, _external=True) }}"
@@ -165,6 +167,14 @@
             <tr>
                 <td class="label">Purpose:</td>
                 <td>{{ visitor.purpose }}</td>
+            </tr>
+            <tr>
+                <td class="label">Vehicle Type:</td>
+                <td>{{ visitor.vehicle_type or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td class="label">Vehicle No:</td>
+                <td>{{ visitor.vehicle_number or 'N/A' }}</td>
             </tr>
             <tr>
                 <td class="label">Entry Time:</td>
