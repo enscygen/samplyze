@@ -208,3 +208,15 @@ class TemplateForm(FlaskForm):
     subject_template = StringField('Subject Template', validators=[Optional()])
     body_template = TextAreaField('Body Template', validators=[DataRequired()], render_kw={'rows': 15})
     submit = SubmitField('Save Template')
+    
+    
+class CreateArchiveForm(FlaskForm):
+    end_date = DateField('Archive All Records Before This Date', format='%Y-%m-%d', validators=[DataRequired()])
+    submit = SubmitField('Create Archive & Clean Database')
+
+class ViewArchiveForm(FlaskForm):
+    archive_file = FileField('Select Archive Database File (.db)', validators=[
+        DataRequired(),
+        FileAllowed(['db'], 'Only .db archive files are allowed!')
+    ])
+    submit = SubmitField('View Archive')

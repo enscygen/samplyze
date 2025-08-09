@@ -32,6 +32,7 @@ from visitors import visitors_bp
 # NEW: Import the new decorator
 from decorators import permission_required
 from templating import templating_bp
+from archive import archive_bp
 
 # --- PyInstaller Path Correction ---
 if getattr(sys, 'frozen', False):
@@ -74,6 +75,7 @@ app.register_blueprint(backup_bp)
 app.register_blueprint(roles_bp)
 app.register_blueprint(visitors_bp)
 app.register_blueprint(templating_bp)
+app.register_blueprint(archive_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
@@ -453,15 +455,21 @@ def dashboard():
 @permission_required(PermissionNames.CAN_ACCESS_SAMPLING_SERVICES)
 def all_samples():
     assigned_to_me = request.args.get('assigned_to_me', 'false').lower() == 'true'
-    
     query = SampleSC.query
-    
-    if assigned_to_me:
+
+    # If the user has the permission to view all samples...
+    if current_user.can(PermissionNames.CAN_VIEW_ALL_SAMPLES):
+        # ...only filter if the checkbox is checked.
+        if assigned_to_me:
+            query = query.filter_by(assigned_staff_id=current_user.id)
+    else:
+        # Otherwise, ALWAYS filter to show only their samples.
         query = query.filter_by(assigned_staff_id=current_user.id)
         
     samples = query.order_by(SampleSC.submission_date.desc()).all()
     
     return render_template('staff/all_samples.html', title='All Samples', samples=samples, assigned_to_me=assigned_to_me)
+
 
 @app.route('/applicant/add', methods=['GET', 'POST'])
 @login_required

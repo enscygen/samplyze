@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Archive Management</h1>
+</div>
+
+<div class="row">
+    <!-- Create Archive Section - ONLY VISIBLE TO ADMINS -->
+    {% if current_user.is_admin %}
+    <div class="col-lg-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-archive-fill"></i> Create New Archive</h5>
+            </div>
+            <div class="card-body">
+                <p>This tool will move all sample and consultancy data created before a selected date from the live database into a separate, downloadable archive file. This helps keep the main application fast and responsive.</p>
+                <div class="alert alert-danger">
+                    <strong>Warning:</strong> This is a destructive action. The selected data will be permanently removed from the live database after being copied to the archive.
+                </div>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#createArchiveModal">
+                        Create Archive & Clean Database
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- View Archive Section - Visible to anyone with the permission -->
+    <div class="{% if current_user.is_admin %}col-lg-6{% else %}col-lg-12{% endif %}">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-eye-fill"></i> View Existing Archive</h5>
+            </div>
+            <div class="card-body">
+                <p>Upload a previously created archive file (<code>.db</code>) to view its contents in a read-only format. This will not affect the live database.</p>
+                <hr>
+                <form method="POST" action="{{ url_for('archive.view_archive') }}" enctype="multipart/form-data">
+                    {{ view_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ view_form.archive_file.label(class="form-label") }}
+                        {{ view_form.archive_file(class="form-control") }}
+                    </div>
+                    <div class="d-grid">
+                        {{ view_form.submit(class="btn btn-info") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Archive Confirmation Modal - ONLY VISIBLE TO ADMINS -->
+{% if current_user.is_admin %}
+<div class="modal fade" id="createArchiveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Archival Process</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{{ url_for('archive.create_archive') }}">
+          <div class="modal-body">
+              {{ create_form.hidden_tag() }}
+              <p>This action is irreversible and will permanently remove old data from the live system.</p>
+              <div class="mb-3">
+                  {{ create_form.end_date.label(class="form-label") }}
+                  {{ create_form.end_date(class="form-control") }}
+              </div>
+              <hr>
+              <p>To proceed, please type <strong>CONFIRM ARCHIVE</strong> into both boxes below.</p>
+              <div class="mb-3">
+                  <label for="confirm1" class="form-label">Confirmation 1</label>
+                  <input type="text" id="confirm1" class="form-control confirmation-input">
+              </div>
+              <div class="mb-3">
+                  <label for="confirm2" class="form-label">Confirmation 2</label>
+                  <input type="text" id="confirm2" class="form-control confirmation-input">
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            {{ create_form.submit(class="btn btn-warning", id="finalArchiveBtn", disabled=True) }}
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if current_user.is_admin %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput1 = document.getElementById('confirm1');
+    const confirmInput2 = document.getElementById('confirm2');
+    const finalArchiveBtn = document.getElementById('finalArchiveBtn');
+    const requiredText = 'CONFIRM ARCHIVE';
+
+    function validateConfirmation() {
+        const input1 = confirmInput1.value;
+        const input2 = confirmInput2.value;
+        
+        if (input1 === requiredText && input2 === requiredText) {
+            finalArchiveBtn.disabled = false;
+        } else {
+            finalArchiveBtn.disabled = true;
+        }
+    }
+
+    confirmInput1.addEventListener('input', validateConfirmation);
+    confirmInput2.addEventListener('input', validateConfirmation);
+});
+</script>
+{% endif %}
+{% endblock %}

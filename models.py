@@ -37,6 +37,8 @@ class PermissionNames:
     CAN_ACCESS_KNOWLEDGE_BASE = 'can_access_knowledge_base'
     CAN_ACCESS_FILE_SHARING = 'can_access_file_sharing'
     CAN_ACCESS_EQUIPMENT_LOGGING = 'can_access_equipment_logging'
+    CAN_MANAGE_ARCHIVES = 'can_manage_archives'
+    CAN_VIEW_ALL_SAMPLES = 'can_view_all_samples'
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)

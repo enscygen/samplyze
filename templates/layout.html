@@ -72,6 +72,13 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('migrate_database') }}"
                             title="Migrate Database" data-bs-placement="bottom"><i class="bi bi-database-up"></i><span
                                 class="d-lg-none ms-2">Migrate Database</span></a></li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('archive.dashboard') }}" title="Archive Management"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-archive"></i><span class="d-lg-none ms-2">Archive Management</span>
+                        </a>
+                    </li>
+
                     {% else %}
                     <!-- Staff Links -->
                     {% if current_user.can(Permission.CAN_ACCESS_APPLICANT_SERVICES) %}
@@ -142,6 +149,16 @@
                         </a>
                     </li>
                     {% endif %}
+
+                    {% if current_user.can(Permission.CAN_MANAGE_ARCHIVES) %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('archive.dashboard') }}" title="Archive Management"
+                            data-bs-placement="bottom">
+                            <i class="bi bi-archive"></i><span class="d-lg-none ms-2">Archive Management</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info"

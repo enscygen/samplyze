@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Viewing Archive</h1>
+    <a href="{{ url_for('archive.dashboard') }}" class="btn btn-secondary">Back to Archive Management</a>
+</div>
+
+<div class="alert alert-info">
+    You are viewing data from an archive file. This data is read-only and is not part of the live application database.
+</div>
+
+{% for table_name, rows in archived_data.items() %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Table: {{ table_name }}</h5>
+        <!-- UPDATED: Added a search input for each table -->
+        <div class="col-md-4">
+            <input type="text" class="form-control form-control-sm archive-search-input" data-table-id="table-{{ table_name }}" placeholder="Search this table...">
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <!-- UPDATED: Added a unique ID to the table body -->
+            <table class="table table-bordered table-sm">
+                <tbody id="table-{{ table_name }}">
+                    {% for row in rows %}
+                    <tr>
+                        {% for cell in row %}
+                        <td>{{ cell }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% else %}
+                    <tr><td>No data in this table.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInputs = document.querySelectorAll('.archive-search-input');
+
+    searchInputs.forEach(input => {
+        input.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableId = this.getAttribute('data-table-id');
+            const tableBody = document.getElementById(tableId);
+            const rows = tableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let rowText = '';
+                for (let j = 0; j < cells.length; j++) {
+                    rowText += (cells[j].textContent || cells[j].innerText) + ' ';
+                }
+
+                if (rowText.toLowerCase().indexOf(searchTerm) > -1) {
+                    rows[i].style.display = "";
+                } else {
+                    rows[i].style.display = "none";
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
