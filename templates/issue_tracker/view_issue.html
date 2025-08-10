@@ -1,0 +1,233 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">#{{ issue.issue_uid }}: {{ issue.title }}</h1>
+    <a href="{{ url_for('issue_tracker.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Description</h5>
+            </div>
+            <div class="card-body">{{ issue.description | safe }}</div>
+        </div>
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Comments</h5>
+            </div>
+            <div class="card-body">
+                {% for comment in issue.comments|sort(attribute='created_at') %}
+                {% set comment_classes = ['new-comment-on-issue'] %}
+                {% if current_user.id == comment.author_id %}
+                    {% set _ = comment_classes.append('my-comment') %}
+                {% else %}
+                    {% set _ = comment_classes.append('other-comment') %}
+                {% endif %}
+                {% if issue.reporter_id == comment.author_id %}
+                    {% set _ = comment_classes.append('owner-comment') %}
+                {% endif %}
+                <div class="{{ comment_classes|join(' ') }}">
+                    <div class="d-flex justify-content-between">
+                        <div class="issue-comment-profile">
+                            <strong>{{ comment.author.name }}</strong>
+                            <small class="text-muted">commented on {{ comment.created_at.strftime('%d %b %Y, %I:%M %p')
+                                }}</small>
+                        </div>
+                        {% if current_user.id == comment.author_id or current_user.is_admin %}
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#deleteCommentModal{{ comment.id }}">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-2 mt-1">{{ comment.comment | safe }}</div>
+                </div>
+                {% endfor %}
+                <br>
+                <form method="POST" action="">
+                    {{ comment_form.hidden_tag() }}
+                    <div id="comment-editor-container" style="height: 150px;"></div>
+                    <!-- UPDATED: Added required=false to prevent browser warning -->
+                    {{ comment_form.comment(class="form-control", style="display:none;", required=false) }}
+                    <div class="text-end mt-2">
+                        {{ comment_form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <th>Reporter</th>
+                        <td>{{ issue.reporter.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Type</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="issue_type">
+                                <option value="Bug" {% if issue.issue_type=='Bug' %}selected{% endif %}>Bug</option>
+                                <option value="Feature Request" {% if issue.issue_type=='Feature Request' %}selected{%
+                                    endif %}>Feature Request</option>
+                                <option value="Task" {% if issue.issue_type=='Task' %}selected{% endif %}>Task</option>
+                            </select></td>
+                    </tr>
+                    <tr>
+                        <th>Priority</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="priority">{% for i in
+                                range(5) %}<option value="P{{i}}" {% if issue.priority=='P' ~ i %}selected{% endif %}>
+                                    P{{i}}</option>{% endfor %}</select></td>
+                    </tr>
+                    <tr>
+                        <th>Severity</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="severity">{% for i in
+                                range(5) %}<option value="S{{i}}" {% if issue.severity=='S' ~ i %}selected{% endif %}>
+                                    S{{i}}</option>{% endfor %}</select></td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="status">
+                                <option value="New" {% if issue.status=='New' %}selected{% endif %}>New</option>
+                                <option value="Assigned" {% if issue.status=='Assigned' %}selected{% endif %}>Assigned
+                                </option>
+                                <option value="In Progress" {% if issue.status=='In Progress' %}selected{% endif %}>In
+                                    Progress</option>
+                                <option value="Fixed" {% if issue.status=='Fixed' %}selected{% endif %}>Fixed</option>
+                                <option value="Wont Fix" {% if issue.status=='Wont Fix' %}selected{% endif %}>Wont Fix
+                                </option>
+                            </select></td>
+                    </tr>
+                    <tr>
+                        <th>Assignee</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="assignee_id">
+                                <option value="">--</option>{% for user in users %}<option value="{{ user.id }}" {% if
+                                    issue.assignee_id==user.id %}selected{% endif %}>{{ user.name }}</option>{% endfor
+                                %}
+                            </select></td>
+                    </tr>
+                    <tr>
+                        <th>Verifier</th>
+                        <td><select class="form-select form-select-sm issue-field" data-field="verifier_id">
+                                <option value="">--</option>{% for user in users %}<option value="{{ user.id }}" {% if
+                                    issue.verifier_id==user.id %}selected{% endif %}>{{ user.name }}</option>{% endfor
+                                %}
+                            </select></td>
+                    </tr>
+                </table>
+                {% if current_user.id == issue.reporter_id or current_user.is_admin %}
+                <br>
+                <div class="d-grid">
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal"
+                        data-bs-target="#deleteIssueModal">
+                        Delete Issue
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Issue Modal -->
+<div class="modal fade" id="deleteIssueModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete this issue and all of its comments?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('issue_tracker.delete_issue', issue_id=issue.id) }}" method="POST">
+                    <input type="submit" class="btn btn-danger" value="Confirm Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Comment Modals -->
+{% for comment in issue.comments %}
+<div class="modal fade" id="deleteCommentModal{{ comment.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Comment Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to permanently delete this comment?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('issue_tracker.delete_comment', comment_id=comment.id) }}" method="POST">
+                    <input type="submit" class="btn btn-danger" value="Confirm Delete">
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/quill.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var commentQuill = new Quill('#comment-editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link']
+                ]
+            },
+            placeholder: 'Add a comment...'
+        });
+
+        var commentForm = document.querySelector('form');
+        var commentTextarea = document.querySelector('textarea[name=comment]');
+
+        commentForm.addEventListener('submit', function () {
+            commentTextarea.value = commentQuill.root.innerHTML;
+        });
+
+        const issueFields = document.querySelectorAll('.issue-field');
+
+        issueFields.forEach(field => {
+            field.addEventListener('change', async function () {
+                const fieldName = this.getAttribute('data-field');
+                const value = this.value;
+
+                const formData = new FormData();
+                formData.append('field', fieldName);
+                formData.append('value', value);
+
+                const response = await fetch("{{ url_for('issue_tracker.update_issue_field', issue_id=issue.id) }}", {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success
+                } else {
+                    alert('Error updating field: ' + data.message);
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

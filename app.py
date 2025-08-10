@@ -33,6 +33,7 @@ from visitors import visitors_bp
 from decorators import permission_required
 from templating import templating_bp
 from archive import archive_bp
+from issue_tracker import issue_tracker_bp
 
 # --- PyInstaller Path Correction ---
 if getattr(sys, 'frozen', False):
@@ -76,6 +77,7 @@ app.register_blueprint(roles_bp)
 app.register_blueprint(visitors_bp)
 app.register_blueprint(templating_bp)
 app.register_blueprint(archive_bp)
+app.register_blueprint(issue_tracker_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')

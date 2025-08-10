@@ -39,6 +39,7 @@ class PermissionNames:
     CAN_ACCESS_EQUIPMENT_LOGGING = 'can_access_equipment_logging'
     CAN_MANAGE_ARCHIVES = 'can_manage_archives'
     CAN_VIEW_ALL_SAMPLES = 'can_view_all_samples'
+    CAN_ACCESS_ISSUE_TRACKER = 'can_access_issue_tracker'
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -325,3 +326,48 @@ class MessageTemplate(db.Model):
     subject_template = db.Column(db.Text)
     body_template = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=get_ist_time)
+
+
+class Issue(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    issue_uid = db.Column(db.String(15), unique=True, nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    
+    reporter_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    verifier_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
+    issue_type = db.Column(db.String(50), default='Bug')
+    priority = db.Column(db.String(10), default='P2')
+    severity = db.Column(db.String(10), default='S2')
+    status = db.Column(db.String(50), default='New')
+    
+    created_at = db.Column(db.DateTime, default=get_ist_time)
+    updated_at = db.Column(db.DateTime, default=get_ist_time, onupdate=get_ist_time)
+
+    reporter = db.relationship('User', foreign_keys=[reporter_id])
+    assignee = db.relationship('User', foreign_keys=[assignee_id])
+    verifier = db.relationship('User', foreign_keys=[verifier_id])
+    
+    comments = db.relationship('IssueComment', backref='issue', cascade="all, delete-orphan")
+    attachments = db.relationship('IssueAttachment', backref='issue', cascade="all, delete-orphan")
+
+class IssueComment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id'), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=get_ist_time)
+    
+    author = db.relationship('User')
+
+class IssueAttachment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    issue_id = db.Column(db.Integer, db.ForeignKey('issue.id'), nullable=False)
+    uploader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=get_ist_time)
+    
+    uploader = db.relationship('User')

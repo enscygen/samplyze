@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Create New Issue</h1>
+    <a href="{{ url_for('issue_tracker.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+</div>
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.title.label(class="form-label") }}
+                {{ form.title(class="form-control form-control-lg") }}
+            </div>
+            <div class="mb-3">
+                {{ form.description.label(class="form-label") }}
+                <div id="editor-container" style="height: 250px;"></div>
+                <!-- UPDATED: Added required=false to prevent browser warning -->
+                {{ form.description(class="form-control", style="display:none;", required=false) }}
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-3 mb-3">{{ form.issue_type.label(class="form-label") }}{{ form.issue_type(class="form-select") }}</div>
+                <div class="col-md-3 mb-3">{{ form.priority.label(class="form-label") }}{{ form.priority(class="form-select") }}</div>
+                <div class="col-md-3 mb-3">{{ form.severity.label(class="form-label") }}{{ form.severity(class="form-select") }}</div>
+            </div>
+             <div class="row">
+                <div class="col-md-6 mb-3">{{ form.assignee_id.label(class="form-label") }}{{ form.assignee_id(class="form-select") }}</div>
+                <div class="col-md-6 mb-3">{{ form.verifier_id.label(class="form-label") }}{{ form.verifier_id(class="form-select") }}</div>
+            </div>
+            <div class="text-center">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<link href="{{ url_for('static', filename='css/quill.snow.css') }}" rel="stylesheet">
+<script src="{{ url_for('static', filename='js/quill.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'image'],
+                ['clean']
+            ]
+        }
+    });
+
+    var form = document.querySelector('form');
+    var descriptionTextarea = document.querySelector('textarea[name=description]');
+    
+    form.addEventListener('submit', function() {
+        descriptionTextarea.value = quill.root.innerHTML;
+    });
+});
+</script>
+{% endblock %}

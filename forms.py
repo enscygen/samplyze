@@ -220,3 +220,18 @@ class ViewArchiveForm(FlaskForm):
         FileAllowed(['db'], 'Only .db archive files are allowed!')
     ])
     submit = SubmitField('View Archive')
+    
+
+class CreateIssueForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[DataRequired()], render_kw={'rows': 10})
+    issue_type = SelectField('Type', choices=[('Bug', 'Bug'), ('Feature Request', 'Feature Request'), ('Task', 'Task')], default='Bug')
+    priority = SelectField('Priority', choices=[(f'P{i}', f'P{i}') for i in range(5)], default='P2')
+    severity = SelectField('Severity', choices=[(f'S{i}', f'S{i}') for i in range(5)], default='S2')
+    assignee_id = SelectField('Assignee', coerce=coerce_int_or_none, validators=[Optional()])
+    verifier_id = SelectField('Verifier', coerce=coerce_int_or_none, validators=[Optional()])
+    submit = SubmitField('Create Issue')
+
+class CommentForm(FlaskForm):
+    comment = TextAreaField('Add a comment...', validators=[DataRequired()], render_kw={'rows': 4})
+    submit = SubmitField('Add Comment')

@@ -159,6 +159,11 @@
                     </li>
                     {% endif %}
 
+                    {% if current_user.can(Permission.CAN_ACCESS_ISSUE_TRACKER) %}<li class="nav-item"><a
+                            class="nav-link" href="{{ url_for('issue_tracker.dashboard') }}" title="Issue Tracker"
+                            data-bs-placement="bottom"><i class="bi bi-bug"></i><span class="d-lg-none ms-2">Issue
+                                Tracker</span></a></li>
+                    {% endif %}
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('network_info') }}" title="Network Info"
