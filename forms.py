@@ -1,9 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField, SelectMultipleField, HiddenField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, DateField, TextAreaField, MultipleFileField, DateTimeField, TimeField, FileField, SelectMultipleField, HiddenField, IntegerField, FloatField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, Optional, ValidationError, NumberRange
 from flask_wtf.file import FileAllowed
 from wtforms.widgets import ListWidget, CheckboxInput
-from models import User
+from models import User, InventoryItem
 
 # ... (Existing helper function and forms remain the same) ...
 def coerce_int_or_none(x):
@@ -235,3 +235,40 @@ class CreateIssueForm(FlaskForm):
 class CommentForm(FlaskForm):
     comment = TextAreaField('Add a comment...', validators=[DataRequired()], render_kw={'rows': 4})
     submit = SubmitField('Add Comment')
+    
+class InventoryItemForm(FlaskForm):
+    item_uid = StringField('Item UID / ID Number', validators=[DataRequired()])
+    name = StringField('Item Name', validators=[DataRequired()])
+    category = SelectField('Category', choices=[
+        ('Chemicals', 'Chemicals'), 
+        ('Glassware', 'Glassware'), 
+        ('Consumables', 'Consumables'), 
+        ('Reagents', 'Reagents'), 
+        ('Testing Kits', 'Testing Kits'), 
+        ('Cultures/Live Samples', 'Cultures/Live Samples'), 
+        ('Tools and Equipments', 'Tools and Equipments'), 
+        ('Other', 'Other')
+    ], validators=[DataRequired()])
+    make = StringField('Make')
+    model = StringField('Model')
+    total_quantity = StringField('Total Quantity / Capacity (e.g., 500ml, 100 units)', validators=[DataRequired()])
+    current_quantity = IntegerField('Current Quantity Remaining (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    block_code = StringField('Block Code')
+    lab_code = StringField('Lab Code')
+    location_code = StringField('Location Code / Shelf')
+    purchase_date = DateField('Purchase Date', format='%Y-%m-%d', validators=[Optional()])
+    expiry_date = DateField('Expiry Date', format='%Y-%m-%d', validators=[Optional()])
+    remarks = TextAreaField('Remarks', render_kw={'rows': 3})
+    submit = SubmitField('Save Item')
+
+    def __init__(self, original_item_uid=None, *args, **kwargs):
+        super(InventoryItemForm, self).__init__(*args, **kwargs)
+        self.original_item_uid = original_item_uid
+
+    def validate_item_uid(self, item_uid):
+        # If the UID hasn't changed, we don't need to check for uniqueness
+        if item_uid.data == self.original_item_uid:
+            return
+        item = InventoryItem.query.filter_by(item_uid=item_uid.data).first()
+        if item:
+            raise ValidationError('That Item UID is already in use. Please choose a different one.')

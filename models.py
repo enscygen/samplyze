@@ -40,6 +40,7 @@ class PermissionNames:
     CAN_MANAGE_ARCHIVES = 'can_manage_archives'
     CAN_VIEW_ALL_SAMPLES = 'can_view_all_samples'
     CAN_ACCESS_ISSUE_TRACKER = 'can_access_issue_tracker'
+    CAN_MANAGE_INVENTORY = 'can_manage_inventory'
 
 class Role(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -371,3 +372,19 @@ class IssueAttachment(db.Model):
     uploaded_at = db.Column(db.DateTime, default=get_ist_time)
     
     uploader = db.relationship('User')
+    
+class InventoryItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_uid = db.Column(db.String(15), unique=True, nullable=False)
+    name = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    make = db.Column(db.String(100))
+    model = db.Column(db.String(100))
+    total_quantity = db.Column(db.String(100)) # Changed to String
+    current_quantity = db.Column(db.Integer, nullable=False) # Is a percentage
+    block_code = db.Column(db.String(50))
+    lab_code = db.Column(db.String(50))
+    location_code = db.Column(db.String(100))
+    purchase_date = db.Column(db.Date)
+    expiry_date = db.Column(db.Date)
+    remarks = db.Column(db.Text)

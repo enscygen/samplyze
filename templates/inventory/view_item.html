@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Item Details: <span class="text-primary">{{ item.name }}</span></h1>
+    <a href="{{ url_for('inventory.dashboard') }}" class="btn btn-secondary">Back to Inventory</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                <table class="table table-borderless">
+                    <tr><th style="width: 30%;">Item UID</th><td>{{ item.item_uid }}</td></tr>
+                    <tr><th>Category</th><td>{{ item.category }}</td></tr>
+                    <tr><th>Make</th><td>{{ item.make or 'N/A' }}</td></tr>
+                    <tr><th>Model</th><td>{{ item.model or 'N/A' }}</td></tr>
+                    <tr><th>Total Quantity</th><td>{{ item.total_quantity }}</td></tr>
+                    <tr><th>Location</th><td>{{ item.block_code or 'N/A' }} / {{ item.lab_code or 'N/A' }} / {{ item.location_code or 'N/A' }}</td></tr>
+                    <tr><th>Purchase Date</th><td>{{ item.purchase_date.strftime('%d-%b-%Y') if item.purchase_date else 'N/A' }}</td></tr>
+                    <tr><th>Expiry Date</th><td>{{ item.expiry_date.strftime('%d-%b-%Y') if item.expiry_date else 'N/A' }}</td></tr>
+                    <tr><th>Remarks</th><td>{{ item.remarks or 'N/A' }}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-4">
+                <h5>Quantity Remaining</h5>
+                {% set qty_percent = item.current_quantity %}
+                {% set bar_color = 'success' %}
+                {% if qty_percent <= 50 %}{% set bar_color = 'warning' %}{% endif %}
+                {% if qty_percent <= 20 %}{% set bar_color = 'danger' %}{% endif %}
+                <div class="progress" style="height: 30px;">
+                    <div class="progress-bar bg-{{ bar_color }}" role="progressbar" style="width: {{ qty_percent }}%;" aria-valuenow="{{ qty_percent }}" aria-valuemin="0" aria-valuemax="100"><strong>{{ qty_percent }}%</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

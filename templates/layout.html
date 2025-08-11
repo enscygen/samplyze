@@ -57,6 +57,9 @@
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('equipment.dashboard') }}"
                             title="Equipment Log" data-bs-placement="bottom"><i class="bi bi-tools"></i><span
                                 class="d-lg-none ms-2">Equipment Log</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('inventory.dashboard') }}"
+                            title="Inventory" data-bs-placement="bottom"><i class="bi bi-box-seam"></i><span
+                                class="d-lg-none ms-2">Inventory</span></a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('lab_settings') }}" title="Settings"
                             data-bs-placement="bottom"><i class="bi bi-gear"></i><span
                                 class="d-lg-none ms-2">Settings</span></a></li>
@@ -108,6 +111,11 @@
                                 class="d-lg-none ms-2">Equipment Log</span></a></li>
                     {% endif %}
 
+                    {% if current_user.can(Permission.CAN_MANAGE_INVENTORY) %}<li class="nav-item"><a class="nav-link"
+                            href="{{ url_for('inventory.dashboard') }}" title="Inventory" data-bs-placement="bottom"><i
+                                class="bi bi-box-seam"></i><span class="d-lg-none ms-2">Inventory</span></a></li>{%
+                    endif %}
+
                     {% if current_user.can(Permission.CAN_ACCESS_FILE_SHARING) %}
                     <li class="nav-item"><a class="nav-link" href="{{ url_for('fileshare.dashboard') }}"
                             title="File Sharing" data-bs-placement="bottom"><i class="bi bi-folder-symlink"></i><span
@@ -149,6 +157,8 @@
                         </a>
                     </li>
                     {% endif %}
+
+
 
                     {% if current_user.can(Permission.CAN_MANAGE_ARCHIVES) %}
                     <li class="nav-item">

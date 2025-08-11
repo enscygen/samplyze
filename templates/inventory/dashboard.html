@@ -1,0 +1,185 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">Inventory Management</h1>
+    <div>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal"><i class="bi bi-upload"></i> Import CSV</button>
+        <a href="{{ url_for('inventory.export_csv') }}" class="btn btn-primary"><i class="bi bi-download"></i> Export CSV</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Add New Item</h5></div>
+            <div class="card-body">
+                <form action="{{ url_for('inventory.add_item') }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-2">{{ form.item_uid.label(class="form-label") }}{{ form.item_uid(class="form-control form-control-sm") }}</div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-6 mb-2">{{ form.category.label(class="form-label") }}{{ form.category(class="form-select form-select-sm") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">{{ form.make.label(class="form-label") }}{{ form.make(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-6 mb-2">{{ form.model.label(class="form-label") }}{{ form.model(class="form-control form-control-sm") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">{{ form.total_quantity.label(class="form-label") }}{{ form.total_quantity(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-6 mb-2">{{ form.current_quantity.label(class="form-label") }}{{ form.current_quantity(class="form-control form-control-sm") }}</div>
+                    </div>
+                     <div class="row">
+                        <div class="col-md-4 mb-2">{{ form.block_code.label(class="form-label") }}{{ form.block_code(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-4 mb-2">{{ form.lab_code.label(class="form-label") }}{{ form.lab_code(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-4 mb-2">{{ form.location_code.label(class="form-label") }}{{ form.location_code(class="form-control form-control-sm") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-2">{{ form.purchase_date.label(class="form-label") }}{{ form.purchase_date(class="form-control form-control-sm") }}</div>
+                        <div class="col-md-6 mb-2">{{ form.expiry_date.label(class="form-label") }}{{ form.expiry_date(class="form-control form-control-sm") }}</div>
+                    </div>
+                    <div class="mb-2">{{ form.remarks.label(class="form-label") }}{{ form.remarks(class="form-control form-control-sm") }}</div>
+                    <div class="d-grid mt-3">{{ form.submit(class="btn btn-primary") }}</div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Inventory List</h5>
+            </div>
+            <div class="card-body">
+                <!-- Filter Section -->
+                <div class="mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-5"><input type="text" id="searchFilter" class="form-control form-control-sm filter-control" placeholder="Search by name, UID, location..." value="{{ filters.search }}"></div>
+                        <div class="col-md-2">
+                            <select id="categoryFilter" class="form-select form-select-sm filter-control">
+                                <option value="all">All Categories</option>
+                                {% for value, label in form.category.choices %}
+                                <option value="{{ value }}" {% if filters.category == value %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                             <select id="expiryFilter" class="form-select form-select-sm filter-control">
+                                <option value="all" {% if filters.expiry == 'all' %}selected{% endif %}>All Expiry</option>
+                                <option value="near_expiry" {% if filters.expiry == 'near_expiry' %}selected{% endif %}>Nearing Expiry</option>
+                                <option value="expired" {% if filters.expiry == 'expired' %}selected{% endif %}>Expired</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="quantityFilter" class="form-select form-select-sm filter-control">
+                                <option value="all" {% if filters.quantity == 'all' %}selected{% endif %}>All Quantities</option>
+                                <option value="low_stock" {% if filters.quantity == 'low_stock' %}selected{% endif %}>Low Stock Only</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item Name / UID</th>
+                                <th>Location</th>
+                                <th>Quantity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.name }}</strong><br>
+                                    <small class="text-muted">{{ item.item_uid }}</small>
+                                </td>
+                                <td>
+                                    {{ item.block_code or 'N/A' }} / {{ item.lab_code or 'N/A' }} / {{ item.location_code or 'N/A' }}
+                                </td>
+                                <td>
+                                    {% set qty_percent = item.current_quantity %}
+                                    {% set bar_color = 'success' %}
+                                    {% if qty_percent <= 50 %}{% set bar_color = 'warning' %}{% endif %}
+                                    {% if qty_percent <= 20 %}{% set bar_color = 'danger' %}{% endif %}
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-{{ bar_color }}" role="progressbar" style="width: {{ qty_percent }}%;" aria-valuenow="{{ qty_percent }}" aria-valuemin="0" aria-valuemax="100">{{ qty_percent }}%</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('inventory.view_item', item_id=item.id) }}" class="btn btn-sm btn-outline-info" title="View"><i class="bi bi-eye"></i></a>
+                                    <a href="{{ url_for('inventory.edit_item', item_id=item.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="4" class="text-center">No items found matching your filters.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Import Inventory from CSV</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="{{ url_for('inventory.import_csv') }}" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
+              <p>Select a CSV file to import. The file must have the following headers:<br>
+              <code>item_uid, name, category, make, model, total_quantity, current_quantity, block_code, lab_code, location_code, purchase_date, expiry_date, remarks</code></p>
+              <div class="alert alert-warning"><strong>Note:</strong> Dates must be in YYYY-MM-DD format.</div>
+              <input type="file" name="file" class="form-control" accept=".csv" required>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Import</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterControls = document.querySelectorAll('.filter-control');
+
+    function applyFilters() {
+        const search = document.getElementById('searchFilter').value;
+        const category = document.getElementById('categoryFilter').value;
+        const expiry = document.getElementById('expiryFilter').value;
+        const quantity = document.getElementById('quantityFilter').value;
+
+        // Construct the new URL with all filter parameters
+        const url = new URL("{{ url_for('inventory.dashboard') }}", window.location.origin);
+        url.searchParams.set('search', search);
+        url.searchParams.set('category', category);
+        url.searchParams.set('expiry', expiry);
+        url.searchParams.set('quantity', quantity);
+        
+        // Reload the page with the new URL
+        window.location.href = url.toString();
+    }
+
+    filterControls.forEach(control => {
+        // Use 'change' for select dropdowns and a delayed 'input' for the search text field
+        if (control.tagName.toLowerCase() === 'select') {
+            control.addEventListener('change', applyFilters);
+        } else {
+            let debounceTimer;
+            control.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilters, 500); // Wait 500ms after user stops typing
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

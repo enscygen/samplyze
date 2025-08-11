@@ -34,6 +34,7 @@ from decorators import permission_required
 from templating import templating_bp
 from archive import archive_bp
 from issue_tracker import issue_tracker_bp
+from inventory import inventory_bp
 
 # --- PyInstaller Path Correction ---
 if getattr(sys, 'frozen', False):
@@ -78,6 +79,7 @@ app.register_blueprint(visitors_bp)
 app.register_blueprint(templating_bp)
 app.register_blueprint(archive_bp)
 app.register_blueprint(issue_tracker_bp)
+app.register_blueprint(inventory_bp)
 
 # --- Custom Filter for Jinja2 ---
 @app.template_filter('nl2br')
@@ -965,9 +967,8 @@ with app.app_context():
         if not staff_role:
             staff_role = Role(name='Staff')
             db.session.add(staff_role)
-        # Ensure staff has all permissions except visitor management
-        staff_perms = [p for p in all_perms if p.name != PermissionNames.CAN_ACCESS_VISITOR_MANAGEMENT]
-        staff_role.permissions = staff_perms
+       
+        staff_role.permissions = all_perms
         
         db.session.commit()
 

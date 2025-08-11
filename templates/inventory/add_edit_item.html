@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+    <h1 class="h2">{{ title }}</h1>
+    <a href="{{ url_for('inventory.dashboard') }}" class="btn btn-secondary">Back to Inventory</a>
+</div>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <!-- Make Item UID readonly when editing -->
+                    {% if item %}
+                    <div class="mb-3">
+                        <label class="form-label">Item UID / ID Number</label>
+                        <input type="text" class="form-control" value="{{ item.item_uid }}" readonly>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        {{ form.item_uid.label(class="form-label") }}
+                        {{ form.item_uid(class="form-control") }}
+                    </div>
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-md-8 mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+                        <div class="col-md-4 mb-3">{{ form.category.label(class="form-label") }}{{ form.category(class="form-select") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.make.label(class="form-label") }}{{ form.make(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.model.label(class="form-label") }}{{ form.model(class="form-control") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.total_quantity.label(class="form-label") }}{{ form.total_quantity(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.current_quantity.label(class="form-label") }}{{ form.current_quantity(class="form-control") }}</div>
+                    </div>
+                     <div class="row">
+                        <div class="col-md-4 mb-3">{{ form.block_code.label(class="form-label") }}{{ form.block_code(class="form-control") }}</div>
+                        <div class="col-md-4 mb-3">{{ form.lab_code.label(class="form-label") }}{{ form.lab_code(class="form-control") }}</div>
+                        <div class="col-md-4 mb-3">{{ form.location_code.label(class="form-label") }}{{ form.location_code(class="form-control") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.purchase_date.label(class="form-label") }}{{ form.purchase_date(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.expiry_date.label(class="form-label") }}{{ form.expiry_date(class="form-control") }}</div>
+                    </div>
+                    <div class="mb-3">{{ form.remarks.label(class="form-label") }}{{ form.remarks(class="form-control") }}</div>
+                    <div class="text-center">
+                        {% if item %}
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete Item</button>
+                        {% endif %}
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if item %}
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this inventory item?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <form action="{{ url_for('inventory.delete_item', item_id=item.id) }}" method="POST">
+          <input type="submit" class="btn btn-danger" value="Confirm Delete">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
