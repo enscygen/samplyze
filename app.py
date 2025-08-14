@@ -15,6 +15,8 @@ import io
 from io import BytesIO
 import barcode
 from barcode.writer import ImageWriter
+import qrcode
+from qrcode.image.svg import SvgPathImage
 
 # Import forms, models, and utility functions from other files
 from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm, RoleForm
@@ -151,6 +153,26 @@ def generate_barcode(data):
         return send_file(buffer, mimetype='image/png')
     except Exception as e:
         print(f"Error generating barcode: {e}")
+        return abort(500)
+    
+@app.route('/qrcode/<path:data>')
+def generate_qrcode(data):
+    """Generates a QR code image as an SVG and serves it."""
+    try:
+        data_to_encode = data.replace('__NL__', '\n')
+
+        # UPDATED: Use the SvgPathImage factory to generate an SVG
+        qr_img = qrcode.make(data_to_encode, image_factory=SvgPathImage)
+        
+        buffer = BytesIO()
+        # The save method for the SVG factory writes XML text, not binary
+        qr_img.save(buffer)
+        buffer.seek(0)
+        
+        # UPDATED: Changed the mimetype to image/svg+xml
+        return send_file(buffer, mimetype='image/svg+xml')
+    except Exception as e:
+        print(f"Error generating QR code: {e}")
         return abort(500)
 
 @app.route('/admin/audit-log')

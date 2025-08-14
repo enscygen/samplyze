@@ -123,13 +123,14 @@
         }
 
         .footer-signatures {
-            margin-top: 50px;
             padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .signature-block {
             display: inline-block;
-            width: 45%;
             text-align: center;
             border: 1px dashed #bababa;
             padding: 5px;
@@ -182,6 +183,21 @@
             color: #222;
         }
 
+        .qr-code-block {
+            display: inline-block;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .qr-code-block img {
+            max-width: 150px;
+        }
+
+        .rich-text-field img {
+            width: 100%;
+            max-width: 300px;
+        }
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
@@ -210,6 +226,7 @@
                 width: 100%;
                 max-width: 300px;
             }
+
 
             /* This creates and increments the page counter */
             @page {
@@ -348,14 +365,23 @@
         {% endif %}
     </div>
 
+
     <div class="footer-signatures">
+        <div class="qr-code-block">
+            {% set qr_data = "Sample UID: " ~ sample.sample_uid ~ "__NL__" ~
+            "Sample Name: " ~ (sample.sample_name or 'N/A') ~ "__NL__" ~
+            "Submission Date: " ~ sample.submission_date.strftime('%d-%b-%Y') ~ "__NL__" ~
+            "Applicant UID: " ~ sample.applicant.uid ~ "__NL__" ~
+            "Applicant Name: " ~ sample.applicant.name ~ "__NL__" ~
+            "Report Generated: " ~ generation_time.strftime('%d-%b-%Y %I:%M %p') %}
+            <img src="{{ url_for('generate_qrcode', data=qr_data, _external=True) }}" alt="QR Code">
+        </div>
         <div class="signature-block" style="float: right;">
             <strong>Report Verified & Digitally Signed by</strong><br>
             {{ current_user.name }}<br>
             <small>{{ current_user.department.name if current_user.department else 'N/A' }}</small><br>
             <small>Signed at: {{ generation_time.strftime('%d-%b-%Y %I:%M %p') }}</small>
         </div>
-        <div style="clear: both;"></div>
     </div>
 
     <div class="final-footer">
