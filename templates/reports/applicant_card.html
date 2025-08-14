@@ -94,7 +94,9 @@
             {% if lab_settings and lab_settings.logo_path %}
             <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
             {% endif %}
-            <h4>{{ lab_settings.lab_name if lab_settings else 'Samplyze' }}</h4>
+            {% if lab_settings and lab_settings.show_name_in_reports %}
+            <h4 class="card-name-display">{{ lab_settings.lab_name if lab_settings else 'Enscygen Samplyze' }}</h4>
+            {% endif %}
             {% if lab_settings and lab_settings.description %}<p>{{ lab_settings.description }}</p>{% endif %}
         </div>
         <div class="barcode">

@@ -77,6 +77,8 @@ class LabSettingsForm(FlaskForm):
     contact_number = StringField('Contact Number(s)')
     email = StringField('Public Email Address', validators=[Email()])
     logo = FileField('Upload New Logo', validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif'], 'Images only!')])
+    show_name_in_navbar = BooleanField('Show Lab Name in Navbar (besides logo)')
+    show_name_in_reports = BooleanField('Show Lab Name in Report Headers')
     submit = SubmitField('Update Settings')
 
 class NSCForm(FlaskForm):
@@ -122,7 +124,7 @@ class DiagnosisForm(FlaskForm):
     title = StringField('Title', validators=[Optional()])
     description = TextAreaField('Description / Method')
     result = TextAreaField('Result / Observations', validators=[Optional()])
-    is_rich_text = BooleanField('Use Rich Text Editor for Result')
+    is_rich_text = BooleanField('Use Rich Text Editor for Result', default=True)
     submit = SubmitField('Add Diagnosis') 
 
 class CreateFolderForm(FlaskForm):

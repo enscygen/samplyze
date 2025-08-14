@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
     <h1 class="h2">#{{ issue.issue_uid }}: {{ issue.title }}</h1>
     <a href="{{ url_for('issue_tracker.dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
@@ -19,39 +20,53 @@
                 <h5 class="mb-0">Comments</h5>
             </div>
             <div class="card-body">
+                <!-- NEW: Comment Indicators Section -->
+                <div class="d-flex flex-wrap gap-2 mb-3 pb-3">
+                    <span class="badge comment-count owner-comment">Total Comments: {{ issue.comments|length }}</span>
+                    <span class="badge comment-count">Comments by Reporter: {{ issue.comments|selectattr('author_id',
+                        'equalto', issue.reporter_id)|list|length }}</span>
+                    <span class="badge comment-count my-comment">Comments by You: {{
+                        issue.comments|selectattr('author_id',
+                        'equalto', current_user.id)|list|length }}</span>
+                    <span class="badge comment-count other-comment">Comments by Others: {{
+                        issue.comments|rejectattr('author_id',
+                        'in', [current_user.id, issue.reporter_id])|list|length }}</span>
+                </div>
+
                 {% for comment in issue.comments|sort(attribute='created_at') %}
-                {% set comment_classes = ['new-comment-on-issue'] %}
+                {% set comment_classes = ['new-comment-on-issue', 'mb-3', 'p-3', 'rounded'] %}
                 {% if current_user.id == comment.author_id %}
-                    {% set _ = comment_classes.append('my-comment') %}
+                {% set _ = comment_classes.append('my-comment') %}
                 {% else %}
-                    {% set _ = comment_classes.append('other-comment') %}
+                {% set _ = comment_classes.append('other-comment') %}
                 {% endif %}
                 {% if issue.reporter_id == comment.author_id %}
-                    {% set _ = comment_classes.append('owner-comment') %}
+                {% set _ = comment_classes.append('owner-comment') %}
                 {% endif %}
+
                 <div class="{{ comment_classes|join(' ') }}">
-                    <div class="d-flex justify-content-between">
-                        <div class="issue-comment-profile">
-                            <strong>{{ comment.author.name }}</strong>
-                            <small class="text-muted">commented on {{ comment.created_at.strftime('%d %b %Y, %I:%M %p')
-                                }}</small>
-                        </div>
+                    <div class="d-flex justify-content-between comment-info-container">
+
+                        <span class="main-commenting-info"> <span class="commentor-name"><strong>{{ comment.author.name
+                                    }}</strong></span>
+                            <span class="commentor-info"><small class="text-muted">commented on {{
+                                    comment.created_at.strftime('%d %b %Y, %I:%M %p')
+                                    }}</small></span></span>
                         {% if current_user.id == comment.author_id or current_user.is_admin %}
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                        <button type="button" class="btn btn-sm btn-delete-btn" data-bs-toggle="modal"
                             data-bs-target="#deleteCommentModal{{ comment.id }}">
                             <i class="bi bi-trash"></i>
                         </button>
                         {% endif %}
                     </div>
 
-                    <div class="p-2 mt-1">{{ comment.comment | safe }}</div>
+                    <div class="mt-1">{{ comment.comment | safe }}</div>
                 </div>
                 {% endfor %}
-                <br>
+                <hr>
                 <form method="POST" action="">
                     {{ comment_form.hidden_tag() }}
                     <div id="comment-editor-container" style="height: 150px;"></div>
-                    <!-- UPDATED: Added required=false to prevent browser warning -->
                     {{ comment_form.comment(class="form-control", style="display:none;", required=false) }}
                     <div class="text-end mt-2">
                         {{ comment_form.submit(class="btn btn-primary") }}
@@ -122,7 +137,7 @@
                     </tr>
                 </table>
                 {% if current_user.id == issue.reporter_id or current_user.is_admin %}
-                <br>
+                <hr>
                 <div class="d-grid">
                     <button type="button" class="btn btn-danger" data-bs-toggle="modal"
                         data-bs-target="#deleteIssueModal">

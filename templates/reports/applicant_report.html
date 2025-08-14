@@ -174,15 +174,19 @@
                 {% if lab_settings and lab_settings.logo_path %}
                 <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
                 {% endif %}
-                <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
+                {% if lab_settings and lab_settings.show_name_in_reports %}
+                <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Applicant Report' }}</h2>
+                {% endif %}
             </td>
             <td style="width: 20%;" class="header-barcode">
                 <img src="{{ url_for('generate_barcode', data=applicant.uid, _external=True) }}" alt="Barcode">
             </td>
             <td style="width: 40%;" class="header-details">
-                {% if lab_settings and lab_settings.description %}<p class="description">{{ (lab_settings.description or '') | nl2br }}
+                {% if lab_settings and lab_settings.description %}<p class="description">{{ (lab_settings.description or
+                    '') | nl2br }}
                 </p>{% endif %}
-                {% if lab_settings and lab_settings.address %}<p>{{ (lab_settings.address or '') | nl2br }}</p>{% endif %}
+                {% if lab_settings and lab_settings.address %}<p>{{ (lab_settings.address or '') | nl2br }}</p>{% endif
+                %}
                 {% if lab_settings and lab_settings.email %}<p>Email: {{ lab_settings.email }}</p>{% endif %}
             </td>
         </tr>

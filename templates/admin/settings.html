@@ -37,29 +37,42 @@
                     </div>
 
                     <hr>
-                    
+
                     <!-- UPDATED: Section for logo management -->
                     <div class="mb-3">
                         <h5>Laboratory Logo</h5>
                         {% if settings and settings.logo_path %}
-                            <div class="mb-3">
-                                <p><strong>Current Logo:</strong></p>
-                                <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" alt="Current Logo" style="max-height: 80px; background-color: #f8f9fa; padding: 5px; border-radius: 5px;">
-                            </div>
+                        <div class="mb-3">
+                            <p><strong>Current Logo:</strong></p>
+                            <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" alt="Current Logo"
+                                style="max-height: 80px; background-color: #f8f9fa; padding: 5px; border-radius: 5px;">
+                        </div>
                         {% else %}
-                            <p class="text-muted">No logo has been uploaded.</p>
+                        <p class="text-muted">No logo has been uploaded.</p>
                         {% endif %}
-                        
+
                         {{ form.logo.label(class="form-label") }}
                         {{ form.logo(class="form-control") }}
                         {% if form.logo.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.logo.errors %}<span>{{ error }}</span>{% endfor %}
-                            </div>
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.logo.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
                         {% endif %}
                         <small class="form-text text-muted">Uploading a new logo will replace the current one.</small>
                     </div>
-
+                    <hr>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.show_name_in_navbar(class="form-check-input") }}
+                            {{ form.show_name_in_navbar.label(class="form-check-label") }}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            {{ form.show_name_in_reports(class="form-check-input") }}
+                            {{ form.show_name_in_reports.label(class="form-check-label") }}
+                        </div>
+                    </div>
                     <div class="text-center mt-3">
                         {{ form.submit(class="btn btn-primary btn-lg") }}
                     </div>

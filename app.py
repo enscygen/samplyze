@@ -388,6 +388,8 @@ def lab_settings():
         settings.address = form.address.data
         settings.contact_number = form.contact_number.data
         settings.email = form.email.data
+        settings.show_name_in_navbar = form.show_name_in_navbar.data
+        settings.show_name_in_reports = form.show_name_in_reports.data
 
         if form.logo.data:
             if settings.logo_path:

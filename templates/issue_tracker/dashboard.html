@@ -2,13 +2,22 @@
 {% block content %}
 <div class="row g-0">
     <!-- Left Sidebar -->
-    <div class="col-md-2 bg-light border-end" style="min-height: 85vh;">
+    <div class="col-md-2 bg-light" style="min-height: 85vh;">
         <div class="p-3">
-            <a href="{{ url_for('issue_tracker.create_issue') }}" class="btn btn-primary w-100 mb-3">Create Issue</a>
+            <a href="{{ url_for('issue_tracker.create_issue') }}" class="btn btn-primary w-100 mb-3"><i class="bi bi-plus-circle me-2"></i> Create Issue</a>
             <ul class="list-group">
-                <a href="{{ url_for('issue_tracker.dashboard') }}" class="list-group-item list-group-item-action {% if not filter_by or filter_by == 'home' %}active{% endif %}">Home</a>
-                <a href="{{ url_for('issue_tracker.dashboard', filter='assigned') }}" class="list-group-item list-group-item-action {% if filter_by == 'assigned' %}active{% endif %}">Assigned to me</a>
-                <a href="{{ url_for('issue_tracker.dashboard', filter='reported') }}" class="list-group-item list-group-item-action {% if filter_by == 'reported' %}active{% endif %}">Reported by me</a>
+                <a href="{{ url_for('issue_tracker.dashboard', filter='home') }}"
+                    class="list-group-item list-group-item-action {% if not filter_by or filter_by == 'home' %}active{% endif %}">
+                    <i class="bi bi-house-door me-2"></i>Home
+                </a>
+                <a href="{{ url_for('issue_tracker.dashboard', filter='assigned') }}"
+                    class="list-group-item list-group-item-action {% if filter_by == 'assigned' %}active{% endif %}">
+                    <i class="bi bi-person-check me-2"></i>Assigned to me
+                </a>
+                <a href="{{ url_for('issue_tracker.dashboard', filter='reported') }}"
+                    class="list-group-item list-group-item-action {% if filter_by == 'reported' %}active{% endif %}">
+                    <i class="bi bi-flag me-2"></i>Reported by me
+                </a>
             </ul>
         </div>
     </div>
@@ -19,16 +28,19 @@
             <h3 class="mb-3">Issues</h3>
             <div class="list-group">
                 {% for issue in issues %}
-                    <a href="{{ url_for('issue_tracker.view_issue', issue_id=issue.id) }}" class="list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">{{ issue.title }}</h5>
-                            <small class="text-muted">{{ issue.updated_at.strftime('%d %b %Y') }}</small>
-                        </div>
-                        <p class="mb-1">#{{ issue.issue_uid }} - Status: <span class="badge bg-primary">{{ issue.status }}</span> | Priority: <span class="badge bg-warning text-dark">{{ issue.priority }}</span></p>
-                        <small>Reported by: {{ issue.reporter.name }}</small>
-                    </a>
+                <a href="{{ url_for('issue_tracker.view_issue', issue_id=issue.id) }}"
+                    class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ issue.title }}</h5>
+                        <small class="text-muted">{{ issue.updated_at.strftime('%d %b %Y') }}</small>
+                    </div>
+                    <p class="mb-1">#{{ issue.issue_uid }} - Status: <span class="badge bg-primary">{{ issue.status
+                            }}</span> | Priority: <span class="badge bg-warning text-dark">{{ issue.priority }}</span>
+                    </p>
+                    <small>Reported by: {{ issue.reporter.name }}</small>
+                </a>
                 {% else %}
-                    <div class="list-group-item text-center text-muted">No issues found for this filter.</div>
+                <div class="list-group-item text-center text-muted">No issues found for this filter.</div>
                 {% endfor %}
             </div>
         </div>

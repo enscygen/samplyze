@@ -225,7 +225,9 @@
                 {% if lab_settings and lab_settings.logo_path %}
                 <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
                 {% endif %}
+                {% if lab_settings and lab_settings.show_name_in_reports %}
                 <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Laboratory Report' }}</h2>
+                {% endif %}
             </td>
             <td style="width: 20%;" class="header-barcode">
                 <img src="{{ url_for('generate_barcode', data=nsc.applicant.uid, _external=True) }}" alt="Barcode">

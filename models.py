@@ -205,6 +205,8 @@ class LabSettings(db.Model):
     contact_number = db.Column(db.String(50))
     email = db.Column(db.String(120))
     logo_path = db.Column(db.String(255), nullable=True)
+    show_name_in_navbar = db.Column(db.Boolean, default=True)
+    show_name_in_reports = db.Column(db.Boolean, default=True)
 
 class Folder(db.Model):
     id = db.Column(db.Integer, primary_key=True)

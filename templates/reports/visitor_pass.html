@@ -128,8 +128,9 @@
             {% if lab_settings and lab_settings.logo_path %}
             <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path, _external=True) }}" alt="Logo">
             {% endif %}
-            <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Samplyze Security System' }}
-            </h2>
+            {% if lab_settings and lab_settings.show_name_in_reports %}
+            <h2 class="lab-name-display">{{ lab_settings.lab_name if lab_settings else 'Enscygen Samplyze' }}</h2>
+            {% endif %}
             {% if lab_settings and lab_settings.description %}<p class="description">{{ (lab_settings.description or '')
                 | nl2br }}
             </p>{% endif %}

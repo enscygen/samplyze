@@ -367,6 +367,40 @@ table.oa-data-table th {
 .new-comment-on-issue.owner-comment {
     border-left: 5px solid #dcdcdc;
 }
+
 .new-comment-on-issue.my-comment {
     border-left: 5px solid #4caf50;
+}
+
+span.badge.comment-count {
+    border: 1px solid #ccc;
+    color: #222;
+    padding: 10px;
+    border-left: 5px solid #222;
+}
+
+span.badge.comment-count.my-comment {
+    border-left: 5px solid #4caf50;
+}
+
+span.badge.comment-count.owner-comment {
+    border-left: 5px solid #dcdcdc;
+}
+
+span.badge.comment-count.other-comment {
+    border-left: 5px solid #004fff;
+}
+
+.new-comment-on-issue p {
+    margin-bottom: 0px;
+}
+
+button.btn.btn-sm.btn-delete-btn {
+    color: #f23e3e;
+    padding: 0px;
+}
+
+.rich-text-field img {
+    width: 100%;
+    max-width: 300px;
 }

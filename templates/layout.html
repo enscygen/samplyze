@@ -31,7 +31,9 @@
                 {% else %}
                 <i class="bi bi-eyedropper me-2"></i>
                 {% endif %}
-                <span class="app-name">{{ lab_settings.lab_name if lab_settings else 'Lab System' }}</span>
+                <span class="app-name">{% if lab_settings and lab_settings.show_name_in_navbar %}
+                    {{ lab_settings.lab_name if lab_settings else 'Enscygen Samplyze' }}
+                    {% endif %}</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
