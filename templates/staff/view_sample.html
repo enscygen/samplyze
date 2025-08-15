@@ -56,11 +56,11 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between py-2 flex-column">
-                    <strong>Sample Name:</strong>
+                    <strong>Sample Name</strong>
                     <span>{{ sample.sample_name or 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between py-2 flex-column">
-                    <strong>Sample Type:</strong>
+                    <strong>Sample Type</strong>
                     <span>{{ sample.sample_type or 'N/A' }}</span>
                 </div>
                 <div class="primary-obs-div">
@@ -96,15 +96,15 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Name:</strong>
+                    <strong>Name</strong>
                     <a href="{{ url_for('view_applicant', uid=sample.applicant.uid) }}">{{ sample.applicant.name }}</a>
                 </div>
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>UID:</strong>
+                    <strong>UID</strong>
                     <span>{{ sample.applicant.uid }}</span>
                 </div>
                 <div class="d-flex justify-content-between flex-column">
-                    <strong>Phone:</strong>
+                    <strong>Phone</strong>
                     <span>{{ sample.applicant.phone }}</span>
                 </div>
             </div>
@@ -115,19 +115,19 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Department:</strong>
+                    <strong>Department</strong>
                     <span>{{ sample.allotted_department.name if sample.allotted_department else 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Assigned Staff:</strong>
+                    <strong>Assigned Staff</strong>
                     <span>{{ sample.assigned_staff.name if sample.assigned_staff else 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Storage:</strong>
+                    <strong>Storage</strong>
                     <span>{{ sample.recommended_storage or 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between flex-column">
-                    <strong>Location:</strong>
+                    <strong>Location</strong>
                     <span>{{ sample.storage_location or 'N/A' }}</span>
                 </div>
             </div>
@@ -138,15 +138,15 @@
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Submitted:</strong>
+                    <strong>Submitted</strong>
                     <span>{{ sample.submission_date.strftime('%d-%b-%Y') if sample.submission_date else 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2 flex-column">
-                    <strong>Collected:</strong>
+                    <strong>Collected</strong>
                     <span>{{ sample.collection_date.strftime('%d-%b-%Y') if sample.collection_date else 'N/A' }}</span>
                 </div>
                 <div class="d-flex justify-content-between flex-column">
-                    <strong>Dispose Before:</strong>
+                    <strong>Dispose Before</strong>
                     <span>{{ sample.dispose_before.strftime('%d-%b-%Y') if sample.dispose_before else 'N/A' }}</span>
                 </div>
             </div>

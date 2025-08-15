@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            font-size: 10pt;
+            font-size: 9pt;
             color: #333;
         }
 
@@ -15,6 +15,10 @@
             width: 100%;
             padding-bottom: 10px;
             margin-bottom: 20px;
+        }
+
+        .diagnosis:last-child {
+            border: none;
         }
 
         .header-table td {
@@ -50,7 +54,7 @@
         }
 
         .header-barcode img {
-            max-height: 100px;
+            max-height: 80px;
         }
 
         .header-details {
@@ -81,6 +85,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            padding: 0px 5px;
         }
 
         .details-table {
@@ -104,9 +109,10 @@
 
         .diagnosis {
             border-bottom: 1px dashed #bababa;
-            padding: 15px 0px;
+            padding: 15px 5px;
             margin-bottom: 15px;
             page-break-inside: avoid;
+            padding-top: 0;
         }
 
         .diagnosis h3 {
@@ -116,6 +122,26 @@
 
         .image-gallery img {
             max-height: 200px;
+        }
+
+        p.diag-main-title {
+            font-size: 11pt;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 4pt;
+        }
+
+        p.diag-date-time {
+            margin: 0;
+            font-size: 9pt;
+        }
+
+        .diagnosis-description {
+            font-size: 9pt;
+        }
+
+        p.diag-title-sub {
+            font-size: 9pt;
         }
 
         .section.image-gallery p {
@@ -196,6 +222,10 @@
         .rich-text-field img {
             width: 100%;
             max-width: 300px;
+        }
+
+        .diag-result-section {
+            font-size: 9pt;
         }
 
         @media print {
@@ -335,13 +365,14 @@
         {% if sample.diagnoses %}
         {% for diagnosis in sample.diagnoses %}
         <div class="diagnosis">
-            <h3>{{ diagnosis.title }} ({{ diagnosis.name }})</h3>
-            <p><strong>Date:</strong> {{ diagnosis.created_at.strftime('%d-%b-%Y %I:%M %p') }}</p>
+            <p class="diag-main-title">{{ diagnosis.title }} ({{ diagnosis.name }})</p>
+            <p class="diag-date-time">{{ diagnosis.created_at.strftime('%d-%b-%Y %I:%M %p') }}
+            </p>
 
-            <p class="mb-slight"><strong>Description / Method</strong></p>
-            <div>{{ diagnosis.description | nl2br or 'N/A' }}</div>
-            <p class="mb-slight"><strong>Result / Observations</strong></p>
-            <div class="rich-text-field">
+            <p class="mb-slight diag-title-sub"><strong>Description / Method</strong></p>
+            <div class="diagnosis-description">{{ diagnosis.description | nl2br or 'N/A' }}</div>
+            <p class="mb-slight diag-title-sub"><strong>Result / Observations</strong></p>
+            <div class="rich-text-field diag-result-section">
                 {% if diagnosis.result_is_rich %}
                 {{ diagnosis.result | safe }}
                 {% else %}
@@ -351,7 +382,7 @@
 
             {% if show_attachments and diagnosis.attachments %}
 
-            <p class="mb-slight"><strong>Attachments</strong></p>
+            <p class="mb-slight diag-title-sub"><strong>Attachments</strong></p>
             <ul>
                 {% for attachment in diagnosis.attachments %}
                 <li>{{ attachment.original_filename }} ({{ attachment.file_type }})</li>

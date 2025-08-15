@@ -404,3 +404,24 @@ button.btn.btn-sm.btn-delete-btn {
     width: 100%;
     max-width: 300px;
 }
+
+.list-and-qr-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.list-and-qr-container div {
+    width: 100%;
+}
+
+.qr-code-block-in-page {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.qr-code-block-in-page img {
+    min-width: 200px;
+}
