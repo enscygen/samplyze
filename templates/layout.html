@@ -25,9 +25,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                {% if lab_settings and lab_settings.logo_path %}
-                <img src="{{ url_for('uploaded_file', filename=lab_settings.logo_path) }}" alt="Logo" height="30"
-                    class="d-inline-block align-text-top me-2">
+                {% if lab_settings and (lab_settings.nav_logo_path or lab_settings.logo_path) %}
+                    <img src="{{ url_for('uploaded_file', filename=lab_settings.nav_logo_path or lab_settings.logo_path) }}" alt="Logo" height="30" class="d-inline-block align-text-top me-2">
                 {% else %}
                 <i class="bi bi-eyedropper me-2"></i>
                 {% endif %}

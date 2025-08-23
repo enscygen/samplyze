@@ -4,18 +4,20 @@
     <h1 class="h2">Laboratory Settings</h1>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-header">
-                <h5 class="mb-0">Update Laboratory Information</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="" enctype="multipart/form-data" novalidate>
-                    {{ form.hidden_tag() }}
+<form method="POST" action="" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="row">
+        <!-- Card 1: Core Laboratory Identity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-building me-2"></i>Core Laboratory Identity</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">Basic information that identifies your laboratory.</p>
                     <div class="mb-3">
                         {{ form.lab_name.label(class="form-label") }}
-                        {{ form.lab_name(class="form-control form-control-lg") }}
+                        {{ form.lab_name(class="form-control") }}
                     </div>
                     <div class="mb-3">
                         {{ form.description.label(class="form-label") }}
@@ -25,42 +27,69 @@
                         {{ form.address.label(class="form-label") }}
                         {{ form.address(class="form-control", rows=3) }}
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Contact & Web Presence -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-globe2 me-2"></i>Contact & Web Presence</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">How clients can contact you and verify reports online.</p>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.contact_number.label(class="form-label") }}
-                            {{ form.contact_number(class="form-control") }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.email.label(class="form-label") }}
-                            {{ form.email(class="form-control") }}
-                        </div>
+                        <div class="col-md-6 mb-3">{{ form.contact_number.label(class="form-label") }}{{ form.contact_number(class="form-control") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.email.label(class="form-label") }}{{ form.email(class="form-control") }}</div>
                     </div>
-
-                    <hr>
-
-                    <!-- UPDATED: Section for logo management -->
                     <div class="mb-3">
-                        <h5>Laboratory Logo</h5>
-                        {% if settings and settings.logo_path %}
-                        <div class="mb-3">
-                            <p><strong>Current Logo:</strong></p>
-                            <img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" alt="Current Logo"
-                                style="max-height: 80px; background-color: #f8f9fa; padding: 5px; border-radius: 5px;">
-                        </div>
-                        {% else %}
-                        <p class="text-muted">No logo has been uploaded.</p>
-                        {% endif %}
+                        {{ form.website_url.label(class="form-label") }}
+                        {{ form.website_url(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.verification_url.label(class="form-label") }}
+                        {{ form.verification_url(class="form-control") }}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        {{ form.logo.label(class="form-label") }}
-                        {{ form.logo(class="form-control") }}
-                        {% if form.logo.errors %}
-                        <div class="invalid-feedback d-block">
-                            {% for error in form.logo.errors %}<span>{{ error }}</span>{% endfor %}
+        <!-- Card 3: Branding & Logos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-image me-2"></i>Branding & Logos</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">Upload logos for reports and the application's navigation bar.</p>
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-4 text-center">
+                             <h6>Main Report Logo</h6>
+                             {% if settings and settings.logo_path %}<img src="{{ url_for('uploaded_file', filename=settings.logo_path) }}" class="img-fluid rounded border" alt="Current Logo">{% else %}<div class="text-muted">None</div>{% endif %}
                         </div>
-                        {% endif %}
-                        <small class="form-text text-muted">Uploading a new logo will replace the current one.</small>
+                        <div class="col-md-8">{{ form.logo.label(class="form-label") }}{{ form.logo(class="form-control") }}</div>
                     </div>
                     <hr>
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center">
+                             <h6>Navbar Logo</h6>
+                             {% if settings and settings.nav_logo_path %}<img src="{{ url_for('uploaded_file', filename=settings.nav_logo_path) }}" class="img-fluid rounded border navbar-logo-settings-display" alt="Current Navbar Logo">{% else %}<div class="text-muted">None</div>{% endif %}
+                        </div>
+                        <div class="col-md-8">{{ form.navlogo.label(class="form-label") }}{{ form.navlogo(class="form-control") }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 4: Display Preferences -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-display me-2"></i>Display Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">Control how your lab's name is displayed throughout the application.</p>
                     <div class="mb-3">
                         <div class="form-check form-switch">
                             {{ form.show_name_in_navbar(class="form-check-input") }}
@@ -73,12 +102,13 @@
                             {{ form.show_name_in_reports.label(class="form-check-label") }}
                         </div>
                     </div>
-                    <div class="text-center mt-3">
-                        {{ form.submit(class="btn btn-primary btn-lg") }}
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <div class="text-center mt-4">
+        {{ form.submit(class="btn btn-primary btn-lg") }}
+    </div>
+</form>
 {% endblock %}

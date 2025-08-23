@@ -17,6 +17,7 @@ import barcode
 from barcode.writer import ImageWriter
 import qrcode
 from qrcode.image.svg import SvgPathImage
+import random
 
 # Import forms, models, and utility functions from other files
 from forms import LoginForm, StaffForm, EditStaffForm, ApplicantForm, NSCForm, SampleForm, DiagnosisForm, LabSettingsForm, ChangePasswordForm, DBMigrationForm, RoleForm
@@ -162,7 +163,7 @@ def generate_qrcode(data):
         data_to_encode = data.replace('__NL__', '\n')
 
         # UPDATED: Use the SvgPathImage factory to generate an SVG
-        qr_img = qrcode.make(data_to_encode, image_factory=SvgPathImage)
+        qr_img = qrcode.make(data_to_encode, image_factory=SvgPathImage,border=1)
         
         buffer = BytesIO()
         # The save method for the SVG factory writes XML text, not binary
@@ -412,7 +413,10 @@ def lab_settings():
         settings.email = form.email.data
         settings.show_name_in_navbar = form.show_name_in_navbar.data
         settings.show_name_in_reports = form.show_name_in_reports.data
+        settings.verification_url = form.verification_url.data
+        settings.website_url = form.website_url.data
 
+        # Handle main logo upload
         if form.logo.data:
             if settings.logo_path:
                 delete_file(settings.logo_path)
@@ -422,6 +426,16 @@ def lab_settings():
             unique_filename = f"logo_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
             logo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
             settings.logo_path = unique_filename
+            
+        # Handle navbar logo upload
+        if form.navlogo.data:
+            if settings.nav_logo_path:
+                delete_file(settings.nav_logo_path)
+            nav_logo_file = form.navlogo.data
+            filename = secure_filename(nav_logo_file.filename)
+            unique_filename = f"navlogo_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
+            nav_logo_file.save(os.path.join(app.config['UPLOAD_FOLDER'], unique_filename))
+            settings.nav_logo_path = unique_filename
 
         db.session.commit()
         log_action("Admin updated laboratory settings.")
@@ -907,12 +921,14 @@ def sample_report(sample_uid):
     # Get parameters from URL, default to True if not present
     include_images = request.args.get('include_images', 'true').lower() == 'true'
     show_attachments = request.args.get('show_attachments', 'true').lower() == 'true'
+    verification_key = f"{random.randint(1000, 9999)}"
     
     return render_template('reports/sample_report.html', 
                            sample=sample, 
                            generation_time=get_ist_time(),
                            include_images=include_images,
-                           show_attachments=show_attachments)
+                           show_attachments=show_attachments,
+                           verification_key=verification_key)
 
 @app.route('/nsc/report/<int:nsc_id>')
 @login_required

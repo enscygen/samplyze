@@ -77,8 +77,11 @@ class LabSettingsForm(FlaskForm):
     contact_number = StringField('Contact Number(s)')
     email = StringField('Public Email Address', validators=[Email()])
     logo = FileField('Upload New Logo', validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif'], 'Images only!')])
+    navlogo = FileField('Upload New Logo', validators=[FileAllowed(['png', 'jpg', 'jpeg', 'gif'], 'Images only!')])
     show_name_in_navbar = BooleanField('Show Lab Name in Navbar (besides logo)')
     show_name_in_reports = BooleanField('Show Lab Name in Report Headers')
+    website_url = StringField('Website URL (e.g., https://www.example.com)')
+    verification_url = StringField('Report Verification URL (e.g., https://example.com/verify)')
     submit = SubmitField('Update Settings')
 
 class NSCForm(FlaskForm):
